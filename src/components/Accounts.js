@@ -65,6 +65,8 @@ const Accounts = () => {
   const [showUserModal, setShowUserModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [userToDeactivate, setUserToDeactivate] = useState(null);
 
   const filteredUsers = users.filter(user => {
     if (filter === 'all') return true;
@@ -106,16 +108,28 @@ const Accounts = () => {
     setShowEditModal(true);
   };
 
-  const handleDeactivateUser = (userId) => {
-    if (window.confirm('Are you sure you want to deactivate this user?')) {
+  const handleDeactivateUser = (user) => {
+    setUserToDeactivate(user);
+    setShowConfirmModal(true);
+  };
+
+  const confirmDeactivateUser = () => {
+    if (userToDeactivate) {
       setUsers(prevUsers => 
         prevUsers.map(user => 
-          user.id === userId 
+          user.id === userToDeactivate.id 
             ? { ...user, status: user.status === 'active' ? 'inactive' : 'active' }
             : user
         )
       );
+      setShowConfirmModal(false);
+      setUserToDeactivate(null);
     }
+  };
+
+  const cancelDeactivate = () => {
+    setShowConfirmModal(false);
+    setUserToDeactivate(null);
   };
 
   const handleSaveUser = () => {
@@ -266,7 +280,7 @@ const Accounts = () => {
                   <button 
                     className="action-btn danger" 
                     title={user.status === 'active' ? 'Deactivate User' : 'Activate User'}
-                    onClick={() => handleDeactivateUser(user.id)}
+                    onClick={() => handleDeactivateUser(user)}
                   >
                     {user.status === 'active' ? (
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -431,6 +445,79 @@ const Accounts = () => {
                   Save Changes
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Confirmation Modal */}
+      {showConfirmModal && userToDeactivate && (
+        <div className="modal-overlay" onClick={cancelDeactivate}>
+          <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="confirm-header">
+              <div className="confirm-icon">
+                {userToDeactivate.status === 'active' ? (
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  </svg>
+                ) : (
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M9 12l2 2 4-4"></path>
+                    <circle cx="12" cy="12" r="10"></circle>
+                  </svg>
+                )}
+              </div>
+              <h3>
+                {userToDeactivate.status === 'active' ? 'Deactivate User' : 'Activate User'}
+              </h3>
+            </div>
+            <div className="confirm-body">
+              <p>
+                Are you sure you want to {userToDeactivate.status === 'active' ? 'deactivate' : 'activate'}{' '}
+                <strong>{userToDeactivate.name}</strong>?
+              </p>
+              <div className="user-preview">
+                <div className="preview-avatar">
+                  {userToDeactivate.avatar}
+                </div>
+                <div className="preview-info">
+                  <div className="preview-name">{userToDeactivate.name}</div>
+                  <div className="preview-email">{userToDeactivate.email}</div>
+                  <span 
+                    className="preview-role"
+                    style={{ 
+                      backgroundColor: `${getRoleColor(userToDeactivate.role)}20`,
+                      color: getRoleColor(userToDeactivate.role),
+                      borderColor: `${getRoleColor(userToDeactivate.role)}40`
+                    }}
+                  >
+                    {userToDeactivate.role}
+                  </span>
+                </div>
+              </div>
+              {userToDeactivate.status === 'active' && (
+                <div className="warning-note">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  </svg>
+                  This user will lose access to all system features immediately.
+                </div>
+              )}
+            </div>
+            <div className="confirm-actions">
+              <button className="btn secondary" onClick={cancelDeactivate}>
+                Cancel
+              </button>
+              <button 
+                className={`btn ${userToDeactivate.status === 'active' ? 'danger' : 'success'}`} 
+                onClick={confirmDeactivateUser}
+              >
+                {userToDeactivate.status === 'active' ? 'Deactivate' : 'Activate'} User
+              </button>
             </div>
           </div>
         </div>
