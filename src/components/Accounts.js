@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './Accounts.css';
 
 const Accounts = () => {
-  const [users] = useState([
+  const [users, setUsers] = useState([
     {
       id: 1,
       name: 'Maria Silva',
@@ -61,6 +61,10 @@ const Accounts = () => {
   ]);
 
   const [filter, setFilter] = useState('all');
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const filteredUsers = users.filter(user => {
     if (filter === 'all') return true;
@@ -90,6 +94,48 @@ const Accounts = () => {
       case 'Content Moderator': return '#9b59b6';
       default: return '#7d8590';
     }
+  };
+
+  const handleViewProfile = (user) => {
+    setSelectedUser(user);
+    setShowUserModal(true);
+  };
+
+  const handleEditUser = (user) => {
+    setEditingUser({ ...user });
+    setShowEditModal(true);
+  };
+
+  const handleDeactivateUser = (userId) => {
+    if (window.confirm('Are you sure you want to deactivate this user?')) {
+      setUsers(prevUsers => 
+        prevUsers.map(user => 
+          user.id === userId 
+            ? { ...user, status: user.status === 'active' ? 'inactive' : 'active' }
+            : user
+        )
+      );
+    }
+  };
+
+  const handleSaveUser = () => {
+    setUsers(prevUsers => 
+      prevUsers.map(user => 
+        user.id === editingUser.id ? editingUser : user
+      )
+    );
+    setShowEditModal(false);
+    setEditingUser(null);
+  };
+
+  const handleCloseModal = () => {
+    setShowUserModal(false);
+    setSelectedUser(null);
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setEditingUser(null);
   };
 
   return (
@@ -197,24 +243,43 @@ const Accounts = () => {
                 </div>
 
                 <div className="user-actions">
-                  <button className="action-btn" title="View Profile">
+                  <button 
+                    className="action-btn" 
+                    title="View Profile"
+                    onClick={() => handleViewProfile(user)}
+                  >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                       <circle cx="12" cy="12" r="3"></circle>
                     </svg>
                   </button>
-                  <button className="action-btn" title="Edit User">
+                  <button 
+                    className="action-btn" 
+                    title="Edit User"
+                    onClick={() => handleEditUser(user)}
+                  >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                       <path d="m18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                     </svg>
                   </button>
-                  <button className="action-btn danger" title="Deactivate User">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <line x1="15" y1="9" x2="9" y2="15"></line>
-                      <line x1="9" y1="9" x2="15" y2="15"></line>
-                    </svg>
+                  <button 
+                    className="action-btn danger" 
+                    title={user.status === 'active' ? 'Deactivate User' : 'Activate User'}
+                    onClick={() => handleDeactivateUser(user.id)}
+                  >
+                    {user.status === 'active' ? (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="15" y1="9" x2="9" y2="15"></line>
+                        <line x1="9" y1="9" x2="15" y2="15"></line>
+                      </svg>
+                    ) : (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M9 12l2 2 4-4"></path>
+                        <circle cx="12" cy="12" r="10"></circle>
+                      </svg>
+                    )}
                   </button>
                 </div>
               </div>
@@ -222,6 +287,154 @@ const Accounts = () => {
           </div>
         </div>
       </div>
+
+      {/* User Profile Modal */}
+      {showUserModal && selectedUser && (
+        <div className="modal-overlay" onClick={handleCloseModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>User Profile</h3>
+              <button className="close-btn" onClick={handleCloseModal}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="profile-section">
+                <div className="profile-avatar large">
+                  {selectedUser.avatar}
+                </div>
+                <div className="profile-info">
+                  <h4>{selectedUser.name}</h4>
+                  <p>{selectedUser.email}</p>
+                  <span 
+                    className="role-badge large"
+                    style={{ 
+                      backgroundColor: `${getRoleColor(selectedUser.role)}20`,
+                      color: getRoleColor(selectedUser.role),
+                      borderColor: `${getRoleColor(selectedUser.role)}40`
+                    }}
+                  >
+                    {selectedUser.role}
+                  </span>
+                </div>
+              </div>
+              <div className="profile-details">
+                <div className="detail-row">
+                  <span className="detail-label">Phone:</span>
+                  <span className="detail-value">{selectedUser.phone}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Location:</span>
+                  <span className="detail-value">{selectedUser.location}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Status:</span>
+                  <span className={`status-indicator ${selectedUser.status}`}>
+                    {selectedUser.status}
+                  </span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Last Login:</span>
+                  <span className="detail-value">{formatLastLogin(selectedUser.lastLogin)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit User Modal */}
+      {showEditModal && editingUser && (
+        <div className="modal-overlay" onClick={handleCloseEditModal}>
+          <div className="modal-content edit-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Edit User</h3>
+              <button className="close-btn" onClick={handleCloseEditModal}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="form-grid">
+                <div className="form-group">
+                  <label>Name</label>
+                  <input
+                    type="text"
+                    value={editingUser.name}
+                    onChange={(e) => setEditingUser({...editingUser, name: e.target.value})}
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Email</label>
+                  <input
+                    type="email"
+                    value={editingUser.email}
+                    onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Phone</label>
+                  <input
+                    type="tel"
+                    value={editingUser.phone}
+                    onChange={(e) => setEditingUser({...editingUser, phone: e.target.value})}
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Location</label>
+                  <input
+                    type="text"
+                    value={editingUser.location}
+                    onChange={(e) => setEditingUser({...editingUser, location: e.target.value})}
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Role</label>
+                  <select
+                    value={editingUser.role}
+                    onChange={(e) => setEditingUser({...editingUser, role: e.target.value})}
+                    className="form-select"
+                  >
+                    <option value="Super Admin">Super Admin</option>
+                    <option value="Campaign Manager">Campaign Manager</option>
+                    <option value="Analyst">Analyst</option>
+                    <option value="Data Specialist">Data Specialist</option>
+                    <option value="Content Moderator">Content Moderator</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Status</label>
+                  <select
+                    value={editingUser.status}
+                    onChange={(e) => setEditingUser({...editingUser, status: e.target.value})}
+                    className="form-select"
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+              </div>
+              <div className="modal-actions">
+                <button className="btn secondary" onClick={handleCloseEditModal}>
+                  Cancel
+                </button>
+                <button className="btn primary" onClick={handleSaveUser}>
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

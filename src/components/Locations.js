@@ -5,36 +5,57 @@ const Locations = () => {
   const [selectedCountry, setSelectedCountry] = useState('Brazil');
   const [selectedState, setSelectedState] = useState('São Paulo');
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'map'
+  const [filters, setFilters] = useState({
+    activeCampaigns: true,
+    highPopulation: true,
+    federalCapitals: false,
+    borderCities: false
+  });
 
   const locations = {
     'Brazil': {
       'São Paulo': [
-        { name: 'São Paulo Capital', population: '12.3M', campaigns: 15, status: 'active' },
-        { name: 'Campinas', population: '1.2M', campaigns: 8, status: 'active' },
-        { name: 'Santos', population: '433K', campaigns: 5, status: 'active' },
-        { name: 'Ribeirão Preto', population: '703K', campaigns: 6, status: 'active' }
+        { name: 'São Paulo Capital', population: '12.3M', campaigns: 15, status: 'active', isCapital: true, isBorder: false, populationNum: 12300000 },
+        { name: 'Campinas', population: '1.2M', campaigns: 8, status: 'active', isCapital: false, isBorder: false, populationNum: 1200000 },
+        { name: 'Santos', population: '433K', campaigns: 5, status: 'active', isCapital: false, isBorder: false, populationNum: 433000 },
+        { name: 'Ribeirão Preto', population: '703K', campaigns: 6, status: 'active', isCapital: false, isBorder: false, populationNum: 703000 }
       ],
       'Rio de Janeiro': [
-        { name: 'Rio de Janeiro Capital', population: '6.7M', campaigns: 12, status: 'active' },
-        { name: 'Niterói', population: '515K', campaigns: 4, status: 'active' },
-        { name: 'Petrópolis', population: '306K', campaigns: 3, status: 'paused' },
-        { name: 'Volta Redonda', population: '273K', campaigns: 2, status: 'active' }
+        { name: 'Rio de Janeiro Capital', population: '6.7M', campaigns: 12, status: 'active', isCapital: true, isBorder: false, populationNum: 6700000 },
+        { name: 'Niterói', population: '515K', campaigns: 4, status: 'active', isCapital: false, isBorder: false, populationNum: 515000 },
+        { name: 'Petrópolis', population: '306K', campaigns: 3, status: 'paused', isCapital: false, isBorder: false, populationNum: 306000 },
+        { name: 'Volta Redonda', population: '273K', campaigns: 2, status: 'active', isCapital: false, isBorder: true, populationNum: 273000 }
       ],
       'Minas Gerais': [
-        { name: 'Belo Horizonte', population: '2.5M', campaigns: 10, status: 'active' },
-        { name: 'Uberlândia', population: '699K', campaigns: 5, status: 'active' },
-        { name: 'Juiz de Fora', population: '573K', campaigns: 4, status: 'active' }
+        { name: 'Belo Horizonte', population: '2.5M', campaigns: 10, status: 'active', isCapital: true, isBorder: false, populationNum: 2500000 },
+        { name: 'Uberlândia', population: '699K', campaigns: 5, status: 'active', isCapital: false, isBorder: true, populationNum: 699000 },
+        { name: 'Juiz de Fora', population: '573K', campaigns: 4, status: 'active', isCapital: false, isBorder: false, populationNum: 573000 }
       ],
       'Brasília': [
-        { name: 'Brasília', population: '3.1M', campaigns: 18, status: 'active' },
-        { name: 'Gama', population: '141K', campaigns: 2, status: 'active' },
-        { name: 'Taguatinga', population: '214K', campaigns: 3, status: 'active' }
+        { name: 'Brasília', population: '3.1M', campaigns: 18, status: 'active', isCapital: true, isBorder: false, populationNum: 3100000 },
+        { name: 'Gama', population: '141K', campaigns: 2, status: 'active', isCapital: false, isBorder: false, populationNum: 141000 },
+        { name: 'Taguatinga', population: '214K', campaigns: 3, status: 'active', isCapital: false, isBorder: false, populationNum: 214000 }
       ]
     }
   };
 
   const states = Object.keys(locations[selectedCountry] || {});
-  const cities = locations[selectedCountry]?.[selectedState] || [];
+  const rawCities = locations[selectedCountry]?.[selectedState] || [];
+
+  const toggleFilter = (filterName) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterName]: !prev[filterName]
+    }));
+  };
+
+  const cities = rawCities.filter(city => {
+    if (filters.activeCampaigns && city.status !== 'active') return false;
+    if (filters.highPopulation && city.populationNum < 1000000) return false;
+    if (filters.federalCapitals && !city.isCapital) return false;
+    if (filters.borderCities && !city.isBorder) return false;
+    return true;
+  });
 
   const totalCampaigns = Object.values(locations[selectedCountry] || {})
     .flat()
@@ -127,19 +148,35 @@ const Locations = () => {
             <h3>Quick Filters</h3>
             <div className="filter-group">
               <label className="filter-checkbox">
-                <input type="checkbox" defaultChecked />
+                <input 
+                  type="checkbox" 
+                  checked={filters.activeCampaigns}
+                  onChange={() => toggleFilter('activeCampaigns')}
+                />
                 <span>Active Campaigns</span>
               </label>
               <label className="filter-checkbox">
-                <input type="checkbox" defaultChecked />
-                <span>High Population</span>
+                <input 
+                  type="checkbox" 
+                  checked={filters.highPopulation}
+                  onChange={() => toggleFilter('highPopulation')}
+                />
+                <span>High Population (1M+)</span>
               </label>
               <label className="filter-checkbox">
-                <input type="checkbox" />
-                <span>Federal Capitals</span>
+                <input 
+                  type="checkbox" 
+                  checked={filters.federalCapitals}
+                  onChange={() => toggleFilter('federalCapitals')}
+                />
+                <span>State Capitals</span>
               </label>
               <label className="filter-checkbox">
-                <input type="checkbox" />
+                <input 
+                  type="checkbox" 
+                  checked={filters.borderCities}
+                  onChange={() => toggleFilter('borderCities')}
+                />
                 <span>Border Cities</span>
               </label>
             </div>
@@ -206,26 +243,44 @@ const Locations = () => {
             </div>
           ) : (
             <div className="map-view">
-              <div className="map-placeholder">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-                  <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
-                  <line x1="8" y1="2" x2="8" y2="18"></line>
-                  <line x1="16" y1="6" x2="16" y2="22"></line>
-                </svg>
-                <h3>Interactive Map View</h3>
-                <p>Map visualization would display cities and campaign coverage across {selectedState}, {selectedCountry}</p>
-                <div className="map-features">
-                  <div className="feature-item">
-                    <div className="feature-dot active"></div>
-                    <span>Active Campaigns</span>
+              <div className="map-container">
+                <iframe
+                  src={`https://maps.google.com/maps?width=100%25&height=600&hl=en&q=${encodeURIComponent(selectedState + ', ' + selectedCountry)}&t=&z=8&ie=UTF8&iwloc=&output=embed`}
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0, borderRadius: '12px' }}
+                  allowFullScreen=""
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title={`Map of ${selectedState}, ${selectedCountry}`}
+                ></iframe>
+                <div className="map-overlay">
+                  <div className="map-legend">
+                    <h4>Campaign Coverage</h4>
+                    <div className="legend-items">
+                      <div className="legend-item">
+                        <div className="legend-dot active"></div>
+                        <span>Active Campaigns</span>
+                      </div>
+                      <div className="legend-item">
+                        <div className="legend-dot paused"></div>
+                        <span>Paused Campaigns</span>
+                      </div>
+                      <div className="legend-item">
+                        <div className="legend-dot high-population"></div>
+                        <span>High Population Centers</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="feature-item">
-                    <div className="feature-dot paused"></div>
-                    <span>Paused Campaigns</span>
-                  </div>
-                  <div className="feature-item">
-                    <div className="feature-dot high-population"></div>
-                    <span>High Population Centers</span>
+                  <div className="map-stats">
+                    <div className="stat-item">
+                      <span className="stat-number">{cities.length}</span>
+                      <span className="stat-label">Cities</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-number">{cities.reduce((sum, city) => sum + city.campaigns, 0)}</span>
+                      <span className="stat-label">Campaigns</span>
+                    </div>
                   </div>
                 </div>
               </div>

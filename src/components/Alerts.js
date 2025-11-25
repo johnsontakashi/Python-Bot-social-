@@ -5,8 +5,10 @@ const Alerts = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterSeverity, setFilterSeverity] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
+  const [expandedAlert, setExpandedAlert] = useState(null);
+  const [mutedAlerts, setMutedAlerts] = useState(new Set());
 
-  const [alerts] = useState([
+  const [alerts, setAlerts] = useState([
     {
       id: 1,
       title: 'High API Rate Limit Usage',
@@ -202,6 +204,32 @@ const Alerts = () => {
     }
   };
 
+  const handleViewDetails = (alert) => {
+    setExpandedAlert(expandedAlert === alert.id ? null : alert.id);
+  };
+
+  const handleAcknowledge = (alertId) => {
+    setAlerts(prevAlerts => 
+      prevAlerts.map(alert => 
+        alert.id === alertId 
+          ? { ...alert, status: 'acknowledged', actions_taken: alert.actions_taken + 1 }
+          : alert
+      )
+    );
+  };
+
+  const handleMuteAlert = (alertId) => {
+    setMutedAlerts(prev => {
+      const newMuted = new Set(prev);
+      if (newMuted.has(alertId)) {
+        newMuted.delete(alertId);
+      } else {
+        newMuted.add(alertId);
+      }
+      return newMuted;
+    });
+  };
+
   const formatTimestamp = (timestamp) => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -360,56 +388,164 @@ const Alerts = () => {
                 </div>
 
                 <div className="alert-actions">
-                  <button className="action-btn primary" title="View Details">
+                  <button 
+                    className={`action-btn primary ${expandedAlert === alert.id ? 'active' : ''}`}
+                    onClick={() => handleViewDetails(alert)}
+                    title="View Details"
+                  >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                       <circle cx="12" cy="12" r="3"></circle>
                     </svg>
                   </button>
                   {alert.status === 'active' && (
-                    <button className="action-btn warning" title="Acknowledge">
+                    <button 
+                      className="action-btn warning"
+                      onClick={() => handleAcknowledge(alert.id)}
+                      title="Acknowledge Alert"
+                    >
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <polyline points="20,6 9,17 4,12"></polyline>
                       </svg>
                     </button>
                   )}
-                  <button className="action-btn" title="Mute Alert">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
-                      <line x1="23" y1="9" x2="17" y2="15"></line>
-                      <line x1="17" y1="9" x2="23" y2="15"></line>
-                    </svg>
+                  <button 
+                    className={`action-btn ${mutedAlerts.has(alert.id) ? 'muted' : ''}`}
+                    onClick={() => handleMuteAlert(alert.id)}
+                    title={mutedAlerts.has(alert.id) ? "Unmute Alert" : "Mute Alert"}
+                  >
+                    {mutedAlerts.has(alert.id) ? (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        <path d="M19 9l-2 2 2 2M17 9l2 2-2 2"/>
+                      </svg>
+                    ) : (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
+                        <line x1="23" y1="9" x2="17" y2="15"></line>
+                        <line x1="17" y1="9" x2="23" y2="15"></line>
+                      </svg>
+                    )}
                   </button>
                 </div>
               </div>
 
-              <div className="alert-details">
-                <div className="details-grid">
-                  <div className="detail-section">
-                    <h4>Affected Campaigns</h4>
-                    <div className="campaign-list">
-                      {alert.affected_campaigns.map((campaign, index) => (
-                        <span key={index} className="campaign-tag">{campaign}</span>
-                      ))}
-                    </div>
+              {expandedAlert === alert.id && (
+                <div className="alert-expanded-details">
+                  <div className="expanded-header">
+                    <h5>Detailed Alert Information</h5>
+                    <span className="expand-badge">Expanded View</span>
                   </div>
+                  
+                  <div className="expanded-content">
+                    <div className="detail-section">
+                      <h6>Alert Metadata</h6>
+                      <div className="detail-grid">
+                        <div className="detail-item">
+                          <span className="detail-key">Alert ID:</span>
+                          <span className="detail-value">{alert.id}</span>
+                        </div>
+                        <div className="detail-item">
+                          <span className="detail-key">Timestamp:</span>
+                          <span className="detail-value">{new Date(alert.timestamp).toLocaleString()}</span>
+                        </div>
+                        <div className="detail-item">
+                          <span className="detail-key">Category:</span>
+                          <span className="detail-value">{alert.category.replace('_', ' ').toUpperCase()}</span>
+                        </div>
+                        <div className="detail-item">
+                          <span className="detail-key">Severity:</span>
+                          <span className="detail-value" style={{ color: getSeverityColor(alert.severity) }}>
+                            {alert.severity.toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="detail-item">
+                          <span className="detail-key">Status:</span>
+                          <span className="detail-value" style={{ color: getStatusColor(alert.status) }}>
+                            {alert.status.toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="detail-item">
+                          <span className="detail-key">Actions Taken:</span>
+                          <span className="detail-value">{alert.actions_taken}</span>
+                        </div>
+                      </div>
+                    </div>
 
-                  <div className="detail-section">
-                    <h4>Technical Details</h4>
-                    <div className="technical-details">
-                      {Object.entries(alert).map(([key, value]) => {
-                        if (['id', 'title', 'description', 'affected_campaigns', 'timestamp', 'source', 'category', 'severity', 'status'].includes(key)) return null;
-                        return (
-                          <div key={key} className="tech-detail">
-                            <span className="tech-label">{key.replace('_', ' ')}:</span>
-                            <span className="tech-value">{value}</span>
-                          </div>
-                        );
-                      })}
+                    <div className="detail-section">
+                      <h6>Affected Campaigns</h6>
+                      <div className="campaign-list">
+                        {alert.affected_campaigns.map((campaign, index) => (
+                          <span key={index} className="campaign-tag">{campaign}</span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="detail-section">
+                      <h6>Technical Details</h6>
+                      <div className="detail-grid">
+                        {Object.entries(alert).map(([key, value]) => {
+                          if (['id', 'title', 'description', 'affected_campaigns', 'timestamp', 'source', 'category', 'severity', 'status'].includes(key)) return null;
+                          return (
+                            <div key={key} className="detail-item">
+                              <span className="detail-key">{key.replace('_', ' ')}:</span>
+                              <span className="detail-value">{value}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="detail-section">
+                      <h6>Full Description</h6>
+                      <p className="expanded-description">{alert.description}</p>
+                    </div>
+
+                    <div className="detail-section">
+                      <h6>Available Actions</h6>
+                      <div className="expanded-actions">
+                        {alert.status === 'active' && (
+                          <button 
+                            className="expanded-action-btn primary"
+                            onClick={() => handleAcknowledge(alert.id)}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <polyline points="20,6 9,17 4,12"></polyline>
+                            </svg>
+                            Acknowledge Alert
+                          </button>
+                        )}
+                        <button 
+                          className={`expanded-action-btn ${mutedAlerts.has(alert.id) ? 'danger' : 'secondary'}`}
+                          onClick={() => handleMuteAlert(alert.id)}
+                        >
+                          {mutedAlerts.has(alert.id) ? (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                              <path d="M19 9l-2 2 2 2M17 9l2 2-2 2"/>
+                            </svg>
+                          ) : (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
+                              <line x1="23" y1="9" x2="17" y2="15"></line>
+                              <line x1="17" y1="9" x2="23" y2="15"></line>
+                            </svg>
+                          )}
+                          {mutedAlerts.has(alert.id) ? 'Unmute Alert' : 'Mute Alert'}
+                        </button>
+                        <button className="expanded-action-btn secondary">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7,10 12,15 17,10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                          </svg>
+                          Export Alert
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           ))}
         </div>

@@ -286,6 +286,234 @@
   color: var(--color-text-primary);
 }
 
+.group-description {
+  color: var(--color-text-tertiary);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 20px 0;
+}
+
+.platforms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.platform-card {
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.platform-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, var(--color-accent-primary), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.platform-card:hover {
+  border-color: var(--color-accent-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg), 0 0 20px rgba(74, 144, 226, 0.1);
+}
+
+.platform-card:hover::before {
+  opacity: 1;
+}
+
+.platform-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.platform-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.platform-icon.twitter {
+  background: linear-gradient(135deg, #1DA1F2, #0d8bd9);
+  transition: all 0.3s ease;
+}
+
+.platform-icon.twitter:hover {
+  background: linear-gradient(135deg, #0d8bd9, #1DA1F2);
+  transform: rotate(-5deg) scale(1.05);
+  box-shadow: 0 0 20px rgba(29, 161, 242, 0.4);
+}
+
+.platform-icon.instagram {
+  background: linear-gradient(135deg, #E4405F, #833AB4, #F77737);
+  transition: all 0.3s ease;
+}
+
+.platform-icon.instagram:hover {
+  background: linear-gradient(135deg, #F77737, #E4405F, #833AB4);
+  transform: rotate(5deg) scale(1.05);
+  box-shadow: 0 0 20px rgba(228, 64, 95, 0.4);
+}
+
+.platform-icon.tiktok {
+  background: linear-gradient(135deg, #000000, #ff0050);
+  transition: all 0.3s ease;
+}
+
+.platform-icon.tiktok:hover {
+  background: linear-gradient(135deg, #ff0050, #000000);
+  transform: rotate(-3deg) scale(1.05);
+  box-shadow: 0 0 20px rgba(255, 0, 80, 0.4);
+}
+
+.platform-icon.facebook {
+  background: linear-gradient(135deg, #1877F2, #42a5f5);
+  transition: all 0.3s ease;
+}
+
+.platform-icon.facebook:hover {
+  background: linear-gradient(135deg, #42a5f5, #1877F2);
+  transform: rotate(3deg) scale(1.05);
+  box-shadow: 0 0 20px rgba(24, 119, 242, 0.4);
+}
+
+.platform-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.platform-info h5 {
+  color: var(--color-text-primary);
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+}
+
+.platform-status {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.platform-card:has(.toggle-input:checked) .platform-status {
+  background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(39, 174, 96, 0.2));
+  color: var(--color-success);
+  border: 1px solid rgba(46, 204, 113, 0.4);
+  font-weight: 600;
+  animation: statusGlow 2s ease-in-out infinite alternate;
+}
+
+.platform-card:has(.toggle-input:not(:checked)) .platform-status {
+  background: linear-gradient(135deg, rgba(125, 133, 144, 0.1), rgba(95, 108, 128, 0.2));
+  color: var(--color-text-tertiary);
+  border: 1px solid rgba(125, 133, 144, 0.3);
+  font-weight: 500;
+}
+
+@keyframes statusGlow {
+  from {
+    box-shadow: 0 0 5px rgba(46, 204, 113, 0.2);
+  }
+  to {
+    box-shadow: 0 0 15px rgba(46, 204, 113, 0.4);
+  }
+}
+
+.platform-description {
+  color: var(--color-text-tertiary);
+  font-size: 13px;
+  line-height: 1.4;
+  margin: 0;
+  transition: color 0.2s ease;
+}
+
+.platform-card:hover .platform-description {
+  color: var(--color-text-secondary);
+}
+
+.modern-toggle {
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.modern-toggle .toggle-input {
+  display: none;
+}
+
+.toggle-slider {
+  position: relative;
+  width: 52px;
+  height: 28px;
+  background-color: var(--color-bg-tertiary);
+  border: 2px solid var(--color-border-primary);
+  border-radius: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: block;
+  overflow: hidden;
+}
+
+.toggle-slider:active {
+  transform: scale(0.98);
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background-color: var(--color-text-tertiary);
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.modern-toggle .toggle-input:checked + .toggle-slider {
+  background: linear-gradient(135deg, var(--color-success), #27ae60);
+  border-color: var(--color-success);
+  box-shadow: 0 0 20px rgba(46, 204, 113, 0.3), inset 0 0 10px rgba(255, 255, 255, 0.2);
+  transform: scale(1.02);
+}
+
+.modern-toggle .toggle-input:checked + .toggle-slider::before {
+  transform: translateX(24px);
+  background-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(46, 204, 113, 0.2);
+}
+
+.modern-toggle:hover .toggle-slider {
+  border-color: var(--color-accent-primary);
+  transform: scale(1.02);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modern-toggle:hover .toggle-input:checked + .toggle-slider {
+  border-color: var(--color-success);
+  box-shadow: 0 0 25px rgba(46, 204, 113, 0.4), inset 0 0 15px rgba(255, 255, 255, 0.3);
+}
+
 @media (max-width: 768px) {
   .settings-container {
     padding: 16px 20px;
@@ -345,6 +573,38 @@
 
   .toggle-group {
     gap: 12px;
+  }
+
+  .platforms-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .platform-card {
+    padding: 16px;
+  }
+
+  .platform-header {
+    gap: 12px;
+  }
+
+  .platform-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .toggle-slider {
+    width: 48px;
+    height: 26px;
+  }
+
+  .toggle-slider::before {
+    width: 18px;
+    height: 18px;
+  }
+
+  .modern-toggle .toggle-input:checked + .toggle-slider::before {
+    transform: translateX(22px);
   }
 }
 
