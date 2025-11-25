@@ -4,39 +4,73 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Python-based social media bot project that is currently in its initial stages. The repository contains only a `.gitignore` file at present, indicating this is a fresh project ready for development.
+This is a Social Media Datasets Dashboard built with React 18, featuring a clean, flat-style interface inspired by data analytics platforms. The dashboard displays social media datasets with metrics and management capabilities.
 
-## Technology Stack Notes
+## Technology Stack
 
-- The repository name suggests this is intended to be a Python project (`Python-Bot-social-`)
-- The current `.gitignore` file is Node.js-focused, which may need to be updated for Python development
-- No dependencies, build system, or project structure has been established yet
+- **Frontend**: React 18
+- **Styling**: CSS3 with Flexbox
+- **Icons**: SVG icons
+- **Build Tool**: Create React App
+- **Package Manager**: npm
 
-## Development Setup (To Be Established)
+## Development Commands
 
-Since this is a new project, the following will likely need to be set up:
+### Setup and Installation
+```bash
+npm install          # Install dependencies
+npm start           # Start development server (http://localhost:3000)
+npm test            # Run tests
+npm run build       # Build for production
+```
 
-### Python Environment
-- Create virtual environment: `python -m venv venv`
-- Activate environment: `source venv/bin/activate` (Linux/Mac) or `venv\Scripts\activate` (Windows)
-- Install dependencies: `pip install -r requirements.txt` (once requirements.txt is created)
+### Development Workflow
+- Development server runs on port 3000
+- Hot reloading is enabled for development
+- CSS changes reflect immediately
 
-### Common Python Project Files to Create
-- `requirements.txt` or `pyproject.toml` for dependencies
-- `main.py` or similar entry point
-- Project structure (e.g., `src/`, `tests/`, etc.)
-- Python-specific `.gitignore` entries
+## Project Structure
 
-## Current State
+```
+src/
+├── components/
+│   ├── Sidebar.js          # Left navigation menu with icons
+│   ├── Dashboard.js        # Main dashboard container
+│   ├── DatasetSection.js   # Dataset section wrapper
+│   └── DatasetItem.js      # Individual dataset row component
+├── App.js                  # Main app component
+├── index.js               # App entry point
+└── *.css                  # Component-specific stylesheets
+```
 
-The project is in its initial state with:
-- Git repository initialized
-- Node.js-focused `.gitignore` (may need updating for Python)
-- No source code, dependencies, or project structure yet
+## Design System
 
-## Recommendations for Initial Development
+### Color Palette
+- **Background**: `#1a1a1a` (dark)
+- **Panels**: `#262626` (lighter gray)
+- **Borders**: `#404040` (separators)
+- **Text Primary**: `#ffffff`
+- **Text Secondary**: `#e0e0e0`
+- **Text Muted**: `#999999`
+- **Accent**: `#4a90e2` (blue)
 
-1. Update `.gitignore` to include Python-specific ignores (e.g., `__pycache__/`, `*.pyc`, `.env`, `venv/`)
-2. Establish project structure based on the intended social media bot functionality
-3. Set up virtual environment and dependency management
-4. Create initial Python modules for bot functionality
+### Component Architecture
+- **Sidebar**: Fixed-width navigation with icons and labels
+- **DatasetSection**: Grouped dataset displays with titles
+- **DatasetItem**: Individual rows with colored icons, metrics, and actions
+- Each component has its own CSS file for modular styling
+
+### Key Features
+- Dark theme with flat design principles
+- Hover effects for interactive elements
+- Color-coded dataset icons
+- Metrics display (hits yesterday/today)
+- Action buttons (play/delete) with hover states
+
+## Development Guidelines
+
+- Follow React functional component patterns
+- Use CSS modules approach (component-specific stylesheets)
+- Maintain consistent spacing and typography
+- Preserve dark theme color scheme
+- Keep flat design aesthetic with minimal shadows
