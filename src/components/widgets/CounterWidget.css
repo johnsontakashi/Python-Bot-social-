@@ -1,0 +1,36 @@
+.counter-widget {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+}
+
+.counter-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #4a90e2;
+  margin-bottom: 16px;
+}
+
+.counter-progress {
+  width: 100%;
+  height: 8px;
+  background-color: #21262d;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #4a90e2, #2ecc71);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.counter-target {
+  color: #7d8590;
+  font-size: 12px;
+  font-weight: 500;
+}

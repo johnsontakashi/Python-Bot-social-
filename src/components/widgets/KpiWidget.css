@@ -1,0 +1,38 @@
+.kpi-widget {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+}
+
+.kpi-value {
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 8px;
+  color: #4a90e2;
+}
+
+.kpi-label {
+  color: #e6edf3;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.kpi-trend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #2ecc71;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.kpi-trend svg {
+  color: #2ecc71;
+}
