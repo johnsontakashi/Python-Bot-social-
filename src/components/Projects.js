@@ -48,6 +48,8 @@ const Projects = ({ onCreateDashboard }) => {
   ]);
 
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
+  const [showDashboardsModal, setShowDashboardsModal] = useState(false);
+  const [selectedProjectDashboards, setSelectedProjectDashboards] = useState([]);
   const [newProject, setNewProject] = useState({
     name: '',
     description: '',
@@ -109,6 +111,22 @@ const Projects = ({ onCreateDashboard }) => {
       startDate: new Date().toISOString().split('T')[0],
       endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
     });
+  };
+
+  const handleViewDashboards = (project) => {
+    const allDashboards = JSON.parse(localStorage.getItem('all_dashboards') || '[]');
+    const projectDashboards = allDashboards.filter(d => d.id.includes(`dashboard_${project.id}`) || d.settings.projectId === project.id);
+    setSelectedProjectDashboards(projectDashboards);
+    setShowDashboardsModal(true);
+  };
+
+  const handleLoadDashboard = (dashboard) => {
+    onCreateDashboard({ 
+      projectId: dashboard.settings.projectId || dashboard.id.split('_')[1], 
+      name: dashboard.settings.title || 'Saved Dashboard',
+      loadDashboard: dashboard
+    });
+    setShowDashboardsModal(false);
   };
 
   const handlePlatformToggle = (platform) => {
@@ -300,6 +318,12 @@ const Projects = ({ onCreateDashboard }) => {
                 Last updated: {formatDate(project.lastUpdate)}
               </div>
               <div className="project-actions-footer">
+                <button 
+                  className="btn tertiary"
+                  onClick={() => handleViewDashboards(project)}
+                >
+                  View Dashboards
+                </button>
                 <button 
                   className="btn secondary"
                   onClick={() => onCreateDashboard({ projectId: project.id, name: project.name })}
@@ -620,6 +644,56 @@ const Projects = ({ onCreateDashboard }) => {
               <button className="modal-btn primary" onClick={handleSaveProjectSettings}>
                 Save Changes
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dashboards Modal */}
+      {showDashboardsModal && (
+        <div className="modal-overlay" onClick={() => setShowDashboardsModal(false)}>
+          <div className="dashboards-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Saved Dashboards</h3>
+              <button className="close-btn" onClick={() => setShowDashboardsModal(false)}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <div className="modal-body">
+              {selectedProjectDashboards.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-content">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                      <line x1="9" y1="9" x2="15" y2="15"/>
+                      <line x1="15" y1="9" x2="9" y2="15"/>
+                    </svg>
+                    <h4>No Dashboards Found</h4>
+                    <p>Create your first dashboard to get started</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="dashboard-list">
+                  {selectedProjectDashboards.map((dashboard, index) => (
+                    <div key={index} className="dashboard-item">
+                      <div className="dashboard-info">
+                        <h4>{dashboard.settings.title}</h4>
+                        <p>Resolution: {dashboard.resolution} • {dashboard.widgets.length} widgets</p>
+                        <small>Last saved: {new Date(dashboard.timestamp).toLocaleString()}</small>
+                      </div>
+                      <button 
+                        className="btn primary"
+                        onClick={() => handleLoadDashboard(dashboard)}
+                      >
+                        Load Dashboard
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

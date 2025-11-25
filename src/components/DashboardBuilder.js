@@ -18,6 +18,27 @@ const DashboardBuilder = ({ dataset, onBack }) => {
   const [widgets, setWidgets] = useState([]);
   const [showWidgetLibrary, setShowWidgetLibrary] = useState(false);
   const [selectedWidget, setSelectedWidget] = useState(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Load dashboard on mount if exists
+  React.useEffect(() => {
+    if (dataset?.loadDashboard) {
+      // Load specific dashboard passed from Projects
+      const dashboard = dataset.loadDashboard;
+      setDashboardSettings(dashboard.settings);
+      setWidgets(dashboard.widgets);
+      setSelectedResolution(dashboard.resolution || '1080p');
+    } else {
+      // Try to load auto-saved dashboard
+      const savedDashboard = localStorage.getItem(`dashboard_${dataset?.id}`);
+      if (savedDashboard) {
+        const parsedDashboard = JSON.parse(savedDashboard);
+        setDashboardSettings(parsedDashboard.settings);
+        setWidgets(parsedDashboard.widgets);
+        setSelectedResolution(parsedDashboard.resolution || '1080p');
+      }
+    }
+  }, [dataset?.id, dataset?.loadDashboard]);
 
   const resolutions = {
     '720p': { width: 1280, height: 720 },
@@ -71,22 +92,69 @@ const DashboardBuilder = ({ dataset, onBack }) => {
     );
   };
 
+  const saveDashboard = () => {
+    const dashboardData = {
+      id: `dashboard_${dataset?.id}`,
+      settings: dashboardSettings,
+      widgets: widgets,
+      resolution: selectedResolution,
+      timestamp: new Date().toISOString()
+    };
+    
+    localStorage.setItem(`dashboard_${dataset?.id}`, JSON.stringify(dashboardData));
+    
+    // Also save to a list of all dashboards
+    const allDashboards = JSON.parse(localStorage.getItem('all_dashboards') || '[]');
+    const existingIndex = allDashboards.findIndex(d => d.id === dashboardData.id);
+    
+    if (existingIndex >= 0) {
+      allDashboards[existingIndex] = dashboardData;
+    } else {
+      allDashboards.push(dashboardData);
+    }
+    
+    localStorage.setItem('all_dashboards', JSON.stringify(allDashboards));
+    alert('Dashboard saved successfully!');
+  };
+
+  const toggleFullscreen = () => {
+    if (!isFullscreen) {
+      document.documentElement.requestFullscreen?.();
+    } else {
+      document.exitFullscreen?.();
+    }
+    setIsFullscreen(!isFullscreen);
+  };
+
   const getCanvasStyle = () => {
     const resolution = resolutions[selectedResolution];
-    const scale = Math.min(
-      (window.innerWidth - 400) / resolution.width,
-      (window.innerHeight - 200) / resolution.height,
-      1
-    );
+    
+    // Improved scaling for external displays
+    let containerWidth, containerHeight;
+    
+    if (isFullscreen) {
+      // Use full screen dimensions for external display
+      containerWidth = window.screen.width;
+      containerHeight = window.screen.height;
+    } else {
+      // Leave space for UI elements in edit mode
+      containerWidth = window.innerWidth - (isEditMode ? 400 : 100);
+      containerHeight = window.innerHeight - (isEditMode ? 200 : 100);
+    }
+    
+    const scaleX = containerWidth / resolution.width;
+    const scaleY = containerHeight / resolution.height;
+    const scale = Math.min(scaleX, scaleY, 1);
 
     return {
       width: resolution.width,
       height: resolution.height,
       transform: `scale(${scale})`,
-      transformOrigin: 'top left',
+      transformOrigin: 'top center',
       background: dashboardSettings.background.type === 'solid' 
         ? dashboardSettings.background.value 
-        : `url(${dashboardSettings.background.value})`
+        : `url(${dashboardSettings.background.value})`,
+      margin: '0 auto'
     };
   };
 
@@ -153,7 +221,32 @@ const DashboardBuilder = ({ dataset, onBack }) => {
             Add Widget
           </button>
 
-          <button className="save-dashboard-btn">
+          <button 
+            className="fullscreen-btn"
+            onClick={toggleFullscreen}
+            title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              {isFullscreen ? (
+                <>
+                  <path d="M8 3v3a2 2 0 0 1-2 2H3"></path>
+                  <path d="M21 8h-3a2 2 0 0 1-2-2V3"></path>
+                  <path d="M3 16h3a2 2 0 0 1 2 2v3"></path>
+                  <path d="M16 21v-3a2 2 0 0 1 2-2h3"></path>
+                </>
+              ) : (
+                <>
+                  <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
+                  <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
+                  <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
+                  <path d="M7 21H5a2 2 0 0 1-2-2v-2"></path>
+                </>
+              )}
+            </svg>
+            {isFullscreen ? 'Exit' : 'Fullscreen'}
+          </button>
+
+          <button className="save-dashboard-btn" onClick={saveDashboard}>
             Save Dashboard
           </button>
         </div>

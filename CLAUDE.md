@@ -4,34 +4,33 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a comprehensive Political Monitor Analytics Platform - a modern, responsive web dashboard for political influencer monitoring with drag-and-drop dashboard builder, data visualization, and comprehensive analytics. Built with React 18 and designed for large video wall displays with support for multiple resolutions (720p to 8K).
+This is a Political Monitor Analytics Platform - a modern, responsive web dashboard for political influencer monitoring with drag-and-drop dashboard builder, data visualization, and comprehensive analytics. Built with React 18 and designed for large video wall displays with support for multiple resolutions (720p to 8K).
 
 ## Technology Stack
 
-- **Frontend**: React 18 with functional components and hooks
+- **Frontend**: React 18.2.0 with functional components and hooks
 - **Styling**: CSS3 with CSS custom properties (CSS variables)
-- **Grid System**: React Grid Layout for drag-and-drop dashboard building
+- **Grid System**: React Grid Layout (v1.5.2) for drag-and-drop dashboard building
 - **State Management**: React useState and useEffect hooks
-- **Icons**: Custom SVG icon library
-- **Typography**: Inter font family from Google Fonts
-- **Build Tool**: Create React App
+- **Build Tool**: Create React App (react-scripts 5.0.1)
 - **Package Manager**: npm
+- **Testing**: React Testing Library and Jest
 
 ## Development Commands
 
 ### Setup and Installation
 ```bash
-npm install          # Install dependencies (includes react-grid-layout)
+npm install          # Install dependencies
 npm start           # Start development server (http://localhost:3000)
-npm test            # Run tests
+npm test            # Run tests in watch mode
 npm run build       # Build for production
 ```
 
-### Development Workflow
-- Development server runs on port 3000 with hot reloading
-- Live reload for CSS and component changes
-- React Developer Tools recommended for debugging
-- Grid layout supports real-time drag-and-drop
+### Available Scripts (from package.json)
+- `npm start` - Starts development server with hot reloading
+- `npm run build` - Creates production build
+- `npm test` - Runs test suite in interactive watch mode  
+- `npm run eject` - Eject from Create React App (irreversible)
 
 ## Project Architecture
 
@@ -39,8 +38,8 @@ npm run build       # Build for production
 ```
 src/
 ├── components/
-│   ├── MainSidebar.js           # Main navigation with 7 sections
-│   ├── TopNavigation.js         # Header with search and notifications
+│   ├── MainSidebar.js           # Main navigation sidebar
+│   ├── TopNavigation.js         # Header with search and actions
 │   ├── Projects.js              # Campaign management dashboard
 │   ├── DashboardBuilder.js      # Drag-and-drop dashboard editor
 │   ├── WidgetLibrary.js         # Widget selection panel
@@ -52,23 +51,32 @@ src/
 │   ├── Events.js                # Event logs
 │   ├── Alerts.js                # Notification management
 │   ├── Settings.js              # Organization settings
-│   └── widgets/                 # Individual widget components
-│       ├── KpiWidget.js         # Large metric displays
-│       ├── CounterWidget.js     # Animated progress counters
-│       ├── ChartWidget.js       # Data visualization widgets
-│       ├── ClockWidget.js       # Digital/analog time displays
+│   ├── Analytics.js             # Analytics dashboard
+│   ├── Dashboard.js             # Dashboard display component
+│   └── widgets/                 # Widget components
+│       ├── KpiWidget.js         # KPI metric cards
+│       ├── CounterWidget.js     # Animated counters
+│       ├── ChartWidget.js       # Data visualizations
+│       ├── ClockWidget.js       # Time displays
 │       ├── ImageWidget.js       # Image/logo widgets
-│       ├── TextWidget.js        # Rich text content panels
-│       └── TrendWidget.js       # Social media trend analytics
-├── App.js                       # Main app routing and state
+│       ├── TextWidget.js        # Rich text panels
+│       └── TrendWidget.js       # Social media trends
+├── App.js                       # Main application component with routing
+├── App.css                      # Application-specific styles
 ├── index.js                     # Application entry point
-└── index.css                    # Global design system
+└── index.css                    # Global styles and design system
 ```
 
 ### Key Application States
-- **currentView**: Navigation state (projects, datasets, accounts, etc.)
+The main App.js component manages three key states:
+- **currentView**: Navigation state ('projects', 'datasets', 'accounts', 'locations', 'events', 'alerts', 'settings')
 - **selectedDataset**: Active dataset for exploration/dashboard creation
-- **currentMode**: Application mode (main, builder, explorer)
+- **currentMode**: Application mode ('main', 'builder', 'explorer')
+
+### Application Flow
+1. **Main Mode**: Shows sidebar navigation + main content area with current view
+2. **Builder Mode**: Full-screen dashboard builder with widget drag-and-drop
+3. **Explorer Mode**: Data exploration interface for selected dataset
 
 ## Design System
 
