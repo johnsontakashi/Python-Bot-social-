@@ -3,6 +3,7 @@ import './App.css';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import Analytics from './components/Analytics';
+import DataTable from './components/DataTable';
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -11,6 +12,8 @@ function App() {
     switch (currentView) {
       case 'analytics':
         return <Analytics />;
+      case 'datatable':
+        return <DataTable />;
       case 'dashboard':
       default:
         return (
@@ -36,6 +39,12 @@ function App() {
           onClick={() => setCurrentView('analytics')}
         >
           📈 Analytics View
+        </button>
+        <button 
+          className={`view-button ${currentView === 'datatable' ? 'active' : ''}`}
+          onClick={() => setCurrentView('datatable')}
+        >
+          📋 Data Table
         </button>
       </div>
       {renderCurrentView()}
