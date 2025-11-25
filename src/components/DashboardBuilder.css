@@ -393,6 +393,13 @@
   transition: all 0.3s ease;
 }
 
+/* Ensure icons are visible in preview mode */
+.dashboard-builder.preview-mode svg {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
 .dashboard-builder.preview-mode .widget-container:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
