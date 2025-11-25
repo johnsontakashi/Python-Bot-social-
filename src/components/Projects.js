@@ -114,8 +114,150 @@ const Projects = ({ onCreateDashboard }) => {
   };
 
   const handleViewDashboards = (project) => {
-    const allDashboards = JSON.parse(localStorage.getItem('all_dashboards') || '[]');
-    const projectDashboards = allDashboards.filter(d => d.id.includes(`dashboard_${project.id}`) || d.settings.projectId === project.id);
+    let allDashboards = JSON.parse(localStorage.getItem('all_dashboards') || '[]');
+    
+    // If no dashboards exist, create sample ones
+    if (allDashboards.length === 0) {
+      const sampleDashboards = [
+        {
+          id: `dashboard_${project.id}_1`,
+          timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+          resolution: '1920x1080',
+          settings: {
+            title: `${project.name} - Overview Dashboard`,
+            projectId: project.id,
+            gridSize: { w: 24, h: 18 },
+            backgroundColor: '#0d1117',
+            refreshRate: 30
+          },
+          widgets: [
+            {
+              id: 'widget_1',
+              type: 'kpi',
+              layout: { x: 0, y: 0, w: 6, h: 4 },
+              config: {
+                title: 'Total Posts',
+                value: project.metrics.totalPosts,
+                trend: '+12%',
+                color: '#2ecc71'
+              }
+            },
+            {
+              id: 'widget_2',
+              type: 'chart',
+              layout: { x: 6, y: 0, w: 12, h: 8 },
+              config: {
+                title: 'Sentiment Analysis',
+                chartType: 'pie',
+                data: [
+                  { name: 'Positive', value: project.metrics.sentiment.positive, color: '#2ecc71' },
+                  { name: 'Neutral', value: project.metrics.sentiment.neutral, color: '#95a5a6' },
+                  { name: 'Negative', value: project.metrics.sentiment.negative, color: '#e74c3c' }
+                ]
+              }
+            },
+            {
+              id: 'widget_3',
+              type: 'trend',
+              layout: { x: 18, y: 0, w: 6, h: 4 },
+              config: {
+                title: 'Engagement Rate',
+                value: '8.7%',
+                trend: '+2.3%',
+                period: '24h'
+              }
+            }
+          ]
+        },
+        {
+          id: `dashboard_${project.id}_2`,
+          timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+          resolution: '3840x2160',
+          settings: {
+            title: `${project.name} - Detailed Analytics`,
+            projectId: project.id,
+            gridSize: { w: 24, h: 18 },
+            backgroundColor: '#0d1117',
+            refreshRate: 60
+          },
+          widgets: [
+            {
+              id: 'widget_1',
+              type: 'counter',
+              layout: { x: 0, y: 0, w: 4, h: 3 },
+              config: {
+                title: 'Active Campaigns',
+                value: project.datasets,
+                maxValue: 20,
+                color: '#4a90e2'
+              }
+            },
+            {
+              id: 'widget_2',
+              type: 'chart',
+              layout: { x: 4, y: 0, w: 16, h: 8 },
+              config: {
+                title: 'Daily Posts Volume',
+                chartType: 'line',
+                data: Array.from({ length: 7 }, (_, i) => ({
+                  date: new Date(Date.now() - (6 - i) * 24 * 60 * 60 * 1000).toLocaleDateString(),
+                  value: Math.floor(Math.random() * 1000) + 500
+                }))
+              }
+            },
+            {
+              id: 'widget_3',
+              type: 'text',
+              layout: { x: 20, y: 0, w: 4, h: 6 },
+              config: {
+                title: 'Key Insights',
+                content: `Project: ${project.name}\n\nStatus: ${project.status}\n\nPlatforms: ${project.platforms.join(', ')}\n\nLast Update: ${new Date(project.lastUpdate).toLocaleDateString()}`
+              }
+            }
+          ]
+        }
+      ];
+
+      // Add sample dashboards for other projects too
+      projects.forEach(proj => {
+        if (proj.id !== project.id && proj.dashboards > 0) {
+          sampleDashboards.push({
+            id: `dashboard_${proj.id}_1`,
+            timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+            resolution: '1920x1080',
+            settings: {
+              title: `${proj.name} - Main Dashboard`,
+              projectId: proj.id,
+              gridSize: { w: 24, h: 18 },
+              backgroundColor: '#0d1117',
+              refreshRate: 30
+            },
+            widgets: [
+              {
+                id: 'widget_1',
+                type: 'kpi',
+                layout: { x: 0, y: 0, w: 6, h: 4 },
+                config: {
+                  title: 'Total Posts',
+                  value: proj.metrics.totalPosts,
+                  trend: '+' + Math.floor(Math.random() * 20) + '%',
+                  color: '#2ecc71'
+                }
+              }
+            ]
+          });
+        }
+      });
+
+      localStorage.setItem('all_dashboards', JSON.stringify(sampleDashboards));
+      allDashboards = sampleDashboards;
+    }
+    
+    const projectDashboards = allDashboards.filter(d => 
+      d.id.includes(`dashboard_${project.id}`) || 
+      (d.settings && d.settings.projectId === project.id)
+    );
+    
     setSelectedProjectDashboards(projectDashboards);
     setShowDashboardsModal(true);
   };
@@ -680,16 +822,31 @@ const Projects = ({ onCreateDashboard }) => {
                   {selectedProjectDashboards.map((dashboard, index) => (
                     <div key={index} className="dashboard-item">
                       <div className="dashboard-info">
-                        <h4>{dashboard.settings.title}</h4>
-                        <p>Resolution: {dashboard.resolution} • {dashboard.widgets.length} widgets</p>
+                        <h4>{dashboard.settings?.title || `Dashboard ${index + 1}`}</h4>
+                        <p>
+                          Resolution: {dashboard.resolution || '1920x1080'} • 
+                          {dashboard.widgets?.length || 0} widgets • 
+                          Refresh: {dashboard.settings?.refreshRate || 30}s
+                        </p>
                         <small>Last saved: {new Date(dashboard.timestamp).toLocaleString()}</small>
                       </div>
-                      <button 
-                        className="btn primary"
-                        onClick={() => handleLoadDashboard(dashboard)}
-                      >
-                        Load Dashboard
-                      </button>
+                      <div className="dashboard-actions">
+                        <button 
+                          className="btn secondary"
+                          onClick={() => {
+                            // Preview functionality
+                            alert(`Preview: ${dashboard.settings?.title}\nWidgets: ${dashboard.widgets?.length}\nResolution: ${dashboard.resolution}`);
+                          }}
+                        >
+                          Preview
+                        </button>
+                        <button 
+                          className="btn primary"
+                          onClick={() => handleLoadDashboard(dashboard)}
+                        >
+                          Load Dashboard
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
