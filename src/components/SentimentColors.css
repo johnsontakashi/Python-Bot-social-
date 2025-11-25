@@ -3,6 +3,7 @@
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
   min-height: 100vh;
+
 }
 
 .sentiment-header {
@@ -400,7 +401,7 @@
 
 .chart-bars {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 12px;
 }
 
