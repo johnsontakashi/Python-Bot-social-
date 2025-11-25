@@ -11,6 +11,10 @@ import Alerts from './components/Alerts';
 import Settings from './components/Settings';
 import DashboardBuilder from './components/DashboardBuilder';
 import DataExplorer from './components/DataExplorer';
+import Displays from './components/Displays';
+import Playlists from './components/Playlists';
+import Streams from './components/Streams';
+import SentimentColors from './components/SentimentColors';
 
 function App() {
   const [currentView, setCurrentView] = useState('projects');
@@ -37,6 +41,14 @@ function App() {
         return <Events />;
       case 'alerts':
         return <Alerts />;
+      case 'displays':
+        return <Displays />;
+      case 'playlists':
+        return <Playlists />;
+      case 'streams':
+        return <Streams />;
+      case 'sentimentcolors':
+        return <SentimentColors />;
       case 'settings':
         return <Settings />;
       default:

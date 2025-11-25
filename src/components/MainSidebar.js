@@ -70,6 +70,54 @@ const MainSidebar = ({ currentView, onViewChange }) => {
       description: 'Automated notifications'
     },
     {
+      id: 'displays',
+      label: 'Displays',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+          <line x1="8" y1="21" x2="16" y2="21"/>
+          <line x1="12" y1="17" x2="12" y2="21"/>
+        </svg>
+      ),
+      description: 'External screens and video walls'
+    },
+    {
+      id: 'playlists',
+      label: 'Playlists',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M15 6v12a3 3 0 1 1-3-3V9a3 3 0 1 1 3-3"/>
+          <path d="M9 18a3 3 0 1 0 6 0 3 3 0 1 0-6 0z"/>
+        </svg>
+      ),
+      description: 'Dashboard playlists'
+    },
+    {
+      id: 'streams',
+      label: 'Streams',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/>
+          <path d="M8 21v-4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v4"/>
+          <path d="M12 3v6"/>
+        </svg>
+      ),
+      description: 'Data streams and filters'
+    },
+    {
+      id: 'sentimentcolors',
+      label: 'Sentiment Colors',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M8 14s1.5 2 3 2 3-2 3-2"/>
+          <circle cx="9" cy="9" r="1"/>
+          <circle cx="15" cy="9" r="1"/>
+        </svg>
+      ),
+      description: 'Sentiment visualization colors'
+    },
+    {
       id: 'settings',
       label: 'Settings',
       icon: (
