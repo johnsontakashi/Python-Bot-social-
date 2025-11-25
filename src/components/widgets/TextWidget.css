@@ -1,0 +1,15 @@
+.text-widget {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: auto;
+}
+
+.text-content {
+  color: #e6edf3;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
