@@ -1,0 +1,98 @@
+.trend-widget {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+  padding: 8px;
+}
+
+.trend-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.platform-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.platform-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.platform-name {
+  color: #e6edf3;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.trend-change {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.trend-metrics {
+  text-align: center;
+}
+
+.metric-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.metric-value {
+  color: #4a90e2;
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
+.metric-label {
+  color: #7d8590;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sentiment-breakdown {
+  margin-top: auto;
+}
+
+.sentiment-bar {
+  display: flex;
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+  background-color: #21262d;
+  margin-bottom: 8px;
+}
+
+.sentiment-segment {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.sentiment-segment.positive {
+  background-color: #2ecc71;
+}
+
+.sentiment-segment.neutral {
+  background-color: #4a90e2;
+}
+
+.sentiment-segment.negative {
+  background-color: #e74c3c;
+}
+
+.sentiment-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 600;
+}
