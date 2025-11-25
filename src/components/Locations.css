@@ -333,65 +333,223 @@
 }
 
 .map-view {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.map-placeholder {
-  text-align: center;
-  color: var(--color-text-tertiary);
-  max-width: 400px;
+.map-container {
+  position: relative;
+  height: 700px;
+  background-color: var(--color-bg-primary);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--color-border-primary);
 }
 
-.map-placeholder svg {
-  margin-bottom: 20px;
-  opacity: 0.5;
+.map-overlay {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  pointer-events: none;
 }
 
-.map-placeholder h3 {
-  color: var(--color-text-secondary);
-  font-size: 20px;
+.map-legend {
+  background-color: rgba(13, 17, 23, 0.95);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  backdrop-filter: blur(10px);
+  pointer-events: auto;
+}
+
+.map-legend h4 {
+  color: var(--color-text-primary);
+  font-size: 14px;
   font-weight: 600;
   margin: 0 0 12px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.map-placeholder p {
-  font-size: 14px;
-  line-height: 1.5;
-  margin: 0 0 24px 0;
-}
-
-.map-features {
+.legend-items {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: 20px;
 }
 
-.feature-item {
+.legend-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
+  color: var(--color-text-secondary);
 }
 
-.feature-dot {
+.legend-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
 }
 
-.feature-dot.active {
+.legend-dot.active {
   background-color: var(--color-success);
 }
 
-.feature-dot.paused {
+.legend-dot.paused {
   background-color: var(--color-warning);
 }
 
-.feature-dot.high-population {
+.legend-dot.high-population {
   background-color: var(--color-accent-primary);
+}
+
+.map-stats {
+  background-color: rgba(13, 17, 23, 0.95);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  backdrop-filter: blur(10px);
+  display: flex;
+  gap: 20px;
+  pointer-events: auto;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-number {
+  color: var(--color-accent-primary);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.stat-label {
+  color: var(--color-text-tertiary);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.map-fallback {
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+}
+
+.fallback-content {
+  text-align: center;
+  color: var(--color-text-tertiary);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.fallback-content svg {
+  margin-bottom: 20px;
+  opacity: 0.6;
+  color: var(--color-accent-primary);
+}
+
+.fallback-content h4 {
+  color: var(--color-text-primary);
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+}
+
+.fallback-content p {
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 24px 0;
+  color: var(--color-text-secondary);
+}
+
+.cities-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.city-marker {
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+
+.city-marker:hover {
+  border-color: var(--color-accent-primary);
+  transform: translateY(-1px);
+}
+
+.marker-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.marker-dot.active {
+  background-color: var(--color-success);
+}
+
+.marker-dot.paused {
+  background-color: var(--color-warning);
+}
+
+.city-marker-name {
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.city-marker-campaigns {
+  color: var(--color-text-tertiary);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .map-container {
+    height: 550px;
+  }
+
+  .map-overlay {
+    flex-direction: column;
+    top: 16px;
+    left: 16px;
+    right: 16px;
+    gap: 12px;
+  }
+
+  .map-stats {
+    align-self: flex-end;
+  }
+
+  .cities-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .city-marker {
+    padding: 10px 12px;
+  }
 }

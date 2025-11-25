@@ -2,14 +2,15 @@ import React, { useState } from 'react';
 import './Events.css';
 
 const Events = () => {
-  const [timeFilter, setTimeFilter] = useState('24h');
+  const [timeFilter, setTimeFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [severityFilter, setSeverityFilter] = useState('all');
+  const [expandedEvent, setExpandedEvent] = useState(null);
 
   const [events] = useState([
     {
       id: 1,
-      timestamp: '2024-11-25T10:30:15Z',
+      timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
       type: 'data_collection',
       severity: 'info',
       title: 'Instagram data collection completed',
@@ -25,7 +26,7 @@ const Events = () => {
     },
     {
       id: 2,
-      timestamp: '2024-11-25T10:15:32Z',
+      timestamp: new Date(Date.now() - 45 * 60 * 1000).toISOString(), // 45 minutes ago
       type: 'system',
       severity: 'warning',
       title: 'High API rate limit usage detected',
@@ -40,7 +41,7 @@ const Events = () => {
     },
     {
       id: 3,
-      timestamp: '2024-11-25T10:00:45Z',
+      timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString(), // 1 hour ago
       type: 'alert',
       severity: 'error',
       title: 'Data collection failed for TikTok',
@@ -132,6 +133,36 @@ const Events = () => {
         estimated_posts: '2,000-3,000',
         collection_period: '24h'
       }
+    },
+    {
+      id: 9,
+      timestamp: '2024-11-24T15:20:10Z',
+      type: 'system',
+      severity: 'info',
+      title: 'Weekly system maintenance completed',
+      description: 'Scheduled weekly maintenance completed successfully. All systems running normally.',
+      source: 'System Monitor',
+      campaign: 'System',
+      details: {
+        maintenance_duration: '2h 30m',
+        services_restarted: 12,
+        uptime_improvement: '0.2%'
+      }
+    },
+    {
+      id: 10,
+      timestamp: '2024-11-20T09:45:30Z',
+      type: 'alert',
+      severity: 'warning',
+      title: 'Storage capacity warning',
+      description: 'Database storage usage exceeded 80%. Consider data archival or capacity expansion.',
+      source: 'Storage Monitor',
+      campaign: 'System',
+      details: {
+        current_usage: '82%',
+        available_space: '1.8TB',
+        growth_rate: '2.5GB/day'
+      }
     }
   ]);
 
@@ -195,6 +226,35 @@ const Events = () => {
     }
   };
 
+  const handleViewDetails = (event) => {
+    setExpandedEvent(expandedEvent === event.id ? null : event.id);
+  };
+
+  const handleDownloadLog = (event) => {
+    const logData = {
+      id: event.id,
+      timestamp: event.timestamp,
+      type: event.type,
+      severity: event.severity,
+      title: event.title,
+      description: event.description,
+      source: event.source,
+      campaign: event.campaign,
+      details: event.details,
+      downloaded_at: new Date().toISOString()
+    };
+
+    const blob = new Blob([JSON.stringify(logData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `event_${event.id}_${event.type}_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const formatTimestamp = (timestamp) => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -217,8 +277,39 @@ const Events = () => {
   };
 
   const filteredEvents = events.filter(event => {
+    // Time filter
+    if (timeFilter !== 'all') {
+      const eventTime = new Date(event.timestamp);
+      const now = new Date();
+      const diffMs = now - eventTime;
+      
+      let timeLimit;
+      switch (timeFilter) {
+        case '1h':
+          timeLimit = 1 * 60 * 60 * 1000; // 1 hour
+          break;
+        case '24h':
+          timeLimit = 24 * 60 * 60 * 1000; // 24 hours
+          break;
+        case '7d':
+          timeLimit = 7 * 24 * 60 * 60 * 1000; // 7 days
+          break;
+        case '30d':
+          timeLimit = 30 * 24 * 60 * 60 * 1000; // 30 days
+          break;
+        default:
+          timeLimit = Infinity;
+      }
+      
+      if (diffMs > timeLimit) return false;
+    }
+    
+    // Type filter
     if (typeFilter !== 'all' && event.type !== typeFilter) return false;
+    
+    // Severity filter
     if (severityFilter !== 'all' && event.severity !== severityFilter) return false;
+    
     return true;
   });
 
@@ -260,6 +351,7 @@ const Events = () => {
               onChange={(e) => setTimeFilter(e.target.value)}
               className="filter-select"
             >
+              <option value="all">All Time</option>
               <option value="1h">Last Hour</option>
               <option value="24h">Last 24 Hours</option>
               <option value="7d">Last 7 Days</option>
@@ -363,13 +455,21 @@ const Events = () => {
                 </div>
 
                 <div className="event-actions">
-                  <button className="action-btn" title="View Full Details">
+                  <button 
+                    className={`action-btn ${expandedEvent === event.id ? 'active' : ''}`}
+                    onClick={() => handleViewDetails(event)}
+                    title="View Full Details"
+                  >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                       <circle cx="12" cy="12" r="3"></circle>
                     </svg>
                   </button>
-                  <button className="action-btn" title="Download Log">
+                  <button 
+                    className="action-btn"
+                    onClick={() => handleDownloadLog(event)}
+                    title="Download Event Log"
+                  >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                       <polyline points="7,10 12,15 17,10"></polyline>
@@ -377,6 +477,82 @@ const Events = () => {
                     </svg>
                   </button>
                 </div>
+
+                {expandedEvent === event.id && (
+                  <div className="event-expanded-details">
+                    <div className="expanded-header">
+                      <h5>Detailed Information</h5>
+                      <span className="expand-badge">Expanded View</span>
+                    </div>
+                    
+                    <div className="expanded-content">
+                      <div className="detail-section">
+                        <h6>Event Metadata</h6>
+                        <div className="detail-grid">
+                          <div className="detail-item">
+                            <span className="detail-key">Event ID:</span>
+                            <span className="detail-value">{event.id}</span>
+                          </div>
+                          <div className="detail-item">
+                            <span className="detail-key">Timestamp:</span>
+                            <span className="detail-value">{new Date(event.timestamp).toLocaleString()}</span>
+                          </div>
+                          <div className="detail-item">
+                            <span className="detail-key">Type:</span>
+                            <span className="detail-value">{event.type.replace('_', ' ').toUpperCase()}</span>
+                          </div>
+                          <div className="detail-item">
+                            <span className="detail-key">Severity:</span>
+                            <span className="detail-value" style={{ color: getSeverityColor(event.severity) }}>
+                              {event.severity.toUpperCase()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="detail-section">
+                        <h6>Event Details</h6>
+                        <div className="detail-grid">
+                          {Object.entries(event.details).map(([key, value]) => (
+                            <div key={key} className="detail-item">
+                              <span className="detail-key">{key.replace('_', ' ')}:</span>
+                              <span className="detail-value">{value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="detail-section">
+                        <h6>Full Description</h6>
+                        <p className="expanded-description">{event.description}</p>
+                      </div>
+
+                      <div className="detail-section">
+                        <h6>Actions Available</h6>
+                        <div className="expanded-actions">
+                          <button 
+                            className="expanded-action-btn primary"
+                            onClick={() => handleDownloadLog(event)}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                              <polyline points="7,10 12,15 17,10"></polyline>
+                              <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            Download Full Log
+                          </button>
+                          <button className="expanded-action-btn secondary">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M8 17l4 4 4-4m-4-5v9"></path>
+                              <path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"></path>
+                            </svg>
+                            Export Event
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ))}
