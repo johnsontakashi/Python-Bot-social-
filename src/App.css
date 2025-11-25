@@ -1,5 +1,45 @@
 .app {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
   background-color: #1a1a1a;
+}
+
+.view-selector {
+  display: flex;
+  gap: 4px;
+  padding: 16px 24px;
+  background-color: #262626;
+  border-bottom: 1px solid #404040;
+}
+
+.view-button {
+  padding: 8px 16px;
+  background-color: transparent;
+  border: 1px solid #404040;
+  border-radius: 6px;
+  color: #e0e0e0;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.view-button:hover {
+  background-color: #333333;
+  border-color: #555555;
+}
+
+.view-button.active {
+  background-color: #4a90e2;
+  border-color: #4a90e2;
+  color: #ffffff;
+}
+
+.dashboard-layout {
+  display: flex;
+  flex: 1;
 }
