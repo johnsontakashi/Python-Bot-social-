@@ -1,0 +1,11 @@
+.analytics-view {
+  min-height: 100vh;
+  background-color: #1a1a1a;
+  display: flex;
+  flex-direction: column;
+}
+
+.analytics-body {
+  display: flex;
+  flex: 1;
+}
