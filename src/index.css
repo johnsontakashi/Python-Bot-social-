@@ -87,38 +87,25 @@ select:focus-visible {
   color: var(--color-text-primary);
 }
 
-/* SVG Icon Fix - Comprehensive with Debug */
+/* SVG Icon Fix - Force Rendering */
 svg {
   display: inline-block !important;
   visibility: visible !important;
   opacity: 1 !important;
-  width: auto !important;
-  height: auto !important;
-  max-width: none !important;
-  max-height: none !important;
-  min-width: 0 !important;
-  min-height: 0 !important;
-  overflow: visible !important;
   fill: currentColor !important;
   stroke: currentColor !important;
-  background-color: rgba(255, 0, 0, 0.2) !important; /* Debug: red background */
-  border: 1px solid #ff0000 !important; /* Debug: red border */
+  flex-shrink: 0;
 }
 
-/* Button SVG icons with debug */
+/* Button SVG icons */
 button svg {
   pointer-events: none !important;
   display: inline-block !important;
   visibility: visible !important;
   opacity: 1 !important;
   vertical-align: middle;
-  flex-shrink: 0;
-  min-width: 16px !important;
-  min-height: 16px !important;
-  width: 16px !important;
-  height: 16px !important;
-  background-color: rgba(0, 255, 0, 0.3) !important; /* Debug: green background */
-  border: 1px solid #00ff00 !important; /* Debug: green border */
+  width: 16px;
+  height: 16px;
 }
 
 /* Force SVG to be visible in all contexts */
