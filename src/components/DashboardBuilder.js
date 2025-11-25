@@ -159,7 +159,7 @@ const DashboardBuilder = ({ dataset, onBack }) => {
   };
 
   return (
-    <div className="dashboard-builder">
+    <div className={`dashboard-builder ${!isEditMode ? 'preview-mode' : ''}`}>
       <div className="builder-header">
         <div className="header-left">
           <button onClick={onBack} className="back-button">

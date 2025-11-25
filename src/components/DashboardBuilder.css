@@ -373,6 +373,71 @@
   text-transform: capitalize;
 }
 
+/* Preview mode enhancements */
+.dashboard-builder.preview-mode .canvas {
+  border: none;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+  border-radius: 12px;
+}
+
+.dashboard-builder.preview-mode .canvas-wrapper {
+  padding: 20px;
+}
+
+.dashboard-builder.preview-mode .widget-container {
+  background-color: rgba(22, 27, 34, 0.95);
+  border: 1px solid rgba(48, 54, 61, 0.6);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
+}
+
+.dashboard-builder.preview-mode .widget-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  border-color: rgba(74, 144, 226, 0.3);
+}
+
+.dashboard-builder.preview-mode .react-grid-item > .react-resizable-handle {
+  display: none;
+}
+
+.dashboard-builder.preview-mode .react-grid-item {
+  cursor: default;
+}
+
+.dashboard-builder.preview-mode .empty-canvas {
+  display: none;
+}
+
+/* Hide edit-specific elements in preview mode */
+.dashboard-builder.preview-mode .add-widget-btn {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.dashboard-builder.preview-mode .widget-settings {
+  display: none;
+}
+
+/* Enhanced preview mode header styling */
+.dashboard-builder.preview-mode .builder-header {
+  background: linear-gradient(135deg, #161b22 0%, #1c2128 100%);
+  border-bottom: 1px solid rgba(74, 144, 226, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.dashboard-builder.preview-mode .mode-btn:not(.active) {
+  opacity: 0.7;
+}
+
+.dashboard-builder.preview-mode .mode-btn.active {
+  background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(46, 204, 113, 0.3);
+}
+
 /* Grid layout overrides */
 .react-grid-item {
   transition: all 200ms ease;
