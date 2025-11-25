@@ -1,0 +1,116 @@
+.dataset-item {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #404040;
+  transition: background-color 0.2s ease;
+}
+
+.dataset-item:last-child {
+  border-bottom: none;
+}
+
+.dataset-item:hover {
+  background-color: #2d2d2d;
+}
+
+.dataset-info {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.dataset-icon {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.dataset-details {
+  min-width: 0;
+  flex: 1;
+}
+
+.dataset-name {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dataset-subtitle {
+  color: #999999;
+  font-size: 12px;
+  font-weight: 400;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dataset-metrics {
+  display: flex;
+  gap: 40px;
+  margin: 0 40px;
+}
+
+.metric-column {
+  text-align: right;
+  min-width: 80px;
+}
+
+.metric-label {
+  color: #999999;
+  font-size: 11px;
+  font-weight: 400;
+  margin-bottom: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metric-value {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.dataset-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.action-button {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #404040;
+  background-color: transparent;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #999999;
+}
+
+.action-button:hover {
+  background-color: #333333;
+  border-color: #555555;
+  color: #ffffff;
+}
+
+.play-button:hover {
+  color: #4a90e2;
+  border-color: #4a90e2;
+}
+
+.delete-button:hover {
+  color: #e74c3c;
+  border-color: #e74c3c;
+}
