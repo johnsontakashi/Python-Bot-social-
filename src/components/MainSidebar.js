@@ -4,6 +4,17 @@ import './MainSidebar.css';
 const MainSidebar = ({ currentView, onViewChange }) => {
   const menuItems = [
     {
+      id: 'dashboard',
+      label: 'Activity Dashboard',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M3 13h8V3H3v10zM13 21h8V11h-8v10z" />
+          <path d="M13 3h8M3 21h8" />
+        </svg>
+      ),
+      description: 'Overview of influencer activity'
+    },
+    {
       id: 'projects',
       label: 'Projects',
       icon: (

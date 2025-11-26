@@ -1,31 +1,38 @@
 import React from 'react';
 import './SentimentTable.css';
 
-const SentimentTable = () => {
+const SentimentTable = ({ summary }) => {
+  const fallback = {
+    counts: { neutral: 15234, negative: 4672, positive: 2483 },
+    percentages: { neutral: 68.1, negative: 20.9, positive: 11.0 },
+    total: 22389
+  };
+
+  const s = summary && summary.total ? summary : fallback;
   const sentimentData = [
     {
       id: 'neutral',
       label: 'Neutral',
       color: '#4a90e2',
-      count: 15234,
-      percentage: 68.1,
-      total: 22389
+      count: s.counts.neutral,
+      percentage: s.percentages.neutral,
+      total: s.total
     },
     {
       id: 'negative',
       label: 'Negative',
       color: '#f39c12',
-      count: 4672,
-      percentage: 20.9,
-      total: 22389
+      count: s.counts.negative,
+      percentage: s.percentages.negative,
+      total: s.total
     },
     {
       id: 'positive',
       label: 'Positive',
       color: '#ffcc99',
-      count: 2483,
-      percentage: 11.0,
-      total: 22389
+      count: s.counts.positive,
+      percentage: s.percentages.positive,
+      total: s.total
     }
   ];
 

@@ -1,0 +1,106 @@
+[
+  {
+    "schema:actor:image": null,
+    "schema:activity.timestamp:timestamp": "05/06/2016 22:51:14",
+    "schema:metadata:datatype": "blog",
+    "schema:actor:name": "Promotor de Justiça",
+    "schema:activity.content:value": "Com o advento da Lei n. 11.343/2006...",
+    "schema:activity.content:language": ["portuguese"],
+    "schema:activity.content:sentiment": "positive",
+    "streams": ["Superior Tribunal de Justiça (STJ)"]
+  },
+  {
+    "schema:actor:image": "https://pbs.twimg.com/profile_images/453602061922627584/qReottvQ_normal.jpeg",
+    "schema:activity.timestamp:timestamp": 1464740919000,
+    "schema:metadata:datatype": "tweet",
+    "schema:actor:name": "raimundo69soare",
+    "schema:activity.content:value": "a tocha neste momento passa por olinda/pernambuco...",
+    "schema:activity.content:language": ["portuguese"],
+    "schema:activity.location:placename": "Antwerp, Belgium",
+    "schema:actor:followers_count": 323,
+    "schema:activity.content:sentiment": "positive",
+    "streams": ["Segurança PE"]
+  },
+  {
+    "schema:actor:image": "https://pbs.twimg.com/profile_images/731197735106445312/kSSiQD_s_normal.jpg",
+    "schema:activity.timestamp:timestamp": 1464741790000,
+    "schema:metadata:datatype": "tweet",
+    "schema:actor:name": "Simplicidade_so",
+    "schema:activity.content:value": "RT ... Levante protesta contra o golpe...",
+    "schema:activity.content:language": ["portuguese"],
+    "schema:activity.content:sentiment": "neutral",
+    "schema:actor:synthetic": "no",
+    "streams": ["Segurança PE"]
+  },
+  {
+    "schema:actor:image": null,
+    "schema:activity.timestamp:timestamp": 1464742393000,
+    "schema:metadata:datatype": "webpage",
+    "schema:actor:name": "Da Redação",
+    "schema:activity.content:value": "Ronaldinho é criticado por técnico do Querétaro...",
+    "schema:activity.content:language": ["portuguese"],
+    "schema:activity.content:sentiment": "positive",
+    "streams": ["Segurança PE"]
+  },
+  {
+    "schema:actor:image": "https://pbs.twimg.com/profile_images/1620260312/show_img.php_normal.jpeg",
+    "schema:activity.timestamp:timestamp": 1464742637000,
+    "schema:metadata:datatype": "tweet",
+    "schema:actor:name": "MarcosMazoni",
+    "schema:activity.content:value": "RT ... a Globo não pode mais sair na rua...",
+    "schema:activity.content:language": ["portuguese"],
+    "schema:activity.content:sentiment": "negative",
+    "schema:actor:synthetic": "no",
+    "streams": ["Segurança PE"]
+  },
+  {
+    "schema:actor:image": null,
+    "schema:activity.timestamp:timestamp": "06/06/2016 00:41:41",
+    "schema:metadata:datatype": "webpage",
+    "schema:actor:name": "rafakave",
+    "schema:activity.content:value": "Não é mais segredo para ninguém...",
+    "schema:activity.content:language": ["portuguese"],
+    "schema:activity.content:sentiment": "positive",
+    "streams": ["Superior Tribunal de Justiça (STJ)"]
+  },
+  {
+    "schema:actor:image": null,
+    "schema:activity.timestamp:timestamp": "05/06/2016 12:52:00",
+    "schema:metadata:datatype": "article",
+    "schema:actor:name": "Marcelo Galli",
+    "schema:activity.content:value": "Na opinião do carioca Antonio Saldanha...",
+    "schema:activity.content:language": ["portuguese"],
+    "schema:activity.content:sentiment": "positive",
+    "streams": ["Superior Tribunal de Justiça (STJ)"]
+  },
+  {
+    "schema:actor:image": null,
+    "schema:activity.timestamp:timestamp": "05/06/2016 12:48:31",
+    "schema:metadata:datatype": "blog",
+    "schema:actor:name": "DE CARA COM A VERDADE GD EM FOCO",
+    "schema:activity.content:value": "Já existem documentos em posse da PGR...",
+    "schema:activity.content:language": ["portuguese"],
+    "schema:activity.content:sentiment": "positive",
+    "streams": ["Superior Tribunal de Justiça (STJ)"]
+  },
+  {
+    "schema:actor:image": "https://pbs.twimg.com/profile_images/737342491142332416/Yq_1pDjB_normal.jpg",
+    "schema:activity.timestamp:timestamp": 1464742756000,
+    "schema:metadata:datatype": "tweet",
+    "schema:actor:name": "o_analu",
+    "schema:activity.content:value": "Boa noite @ Itaipava Arena Pernambuco",
+    "schema:activity.content:language": ["portuguese"],
+    "schema:activity.content:sentiment": "positive",
+    "streams": ["Segurança PE"]
+  },
+  {
+    "schema:actor:image": "https://pbs.twimg.com/profile_images/671194266891366400/zkSSfovs_normal.jpg",
+    "schema:activity.timestamp:timestamp": 1464742941000,
+    "schema:metadata:datatype": "tweet",
+    "schema:actor:name": "_cleberbarros",
+    "schema:activity.content:value": "AO VIVO no #Periscope: Polícia Civil Pernambuco...",
+    "schema:activity.content:language": ["portuguese"],
+    "schema:activity.content:sentiment": "neutral",
+    "streams": ["Segurança PE"]
+  }
+]

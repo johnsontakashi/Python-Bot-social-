@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './TimeSeriesChart.css';
 
-const TimeSeriesChart = () => {
+const TimeSeriesChart = ({ data, title = 'Sentiment Analysis Over Time' }) => {
   const [chartOptions, setChartOptions] = useState({
     showStreamHistory: true,
     showReposts: false,
@@ -23,8 +23,8 @@ const TimeSeriesChart = () => {
     }));
   };
 
-  // Mock data points for the chart
-  const chartData = [
+  // Use provided data or fallback to mock
+  const mockData = [
     { date: '03/03', neutral: 120, negative: 80, positive: 60 },
     { date: '04/03', neutral: 140, negative: 90, positive: 70 },
     { date: '05/03', neutral: 110, negative: 100, positive: 50 },
@@ -36,13 +36,14 @@ const TimeSeriesChart = () => {
     { date: '11/03', neutral: 160, negative: 80, positive: 70 },
     { date: '12/03', neutral: 200, negative: 55, positive: 100 }
   ];
+  const chartData = Array.isArray(data) && data.length ? data : mockData;
 
   const maxValue = Math.max(...chartData.flatMap(d => [d.neutral, d.negative, d.positive]));
 
   return (
     <div className="time-series-chart">
       <div className="chart-header">
-        <h3 className="chart-title">Sentiment Analysis Over Time</h3>
+        <h3 className="chart-title">{title}</h3>
         
         <div className="chart-controls">
           <div className="toggle-controls">

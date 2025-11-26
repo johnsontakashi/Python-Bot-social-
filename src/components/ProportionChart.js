@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import './ProportionChart.css';
 
-const ProportionChart = () => {
+const ProportionChart = ({ distribution }) => {
   const [showOthers, setShowOthers] = useState(false);
 
-  const sentimentData = [
+  const fallback = [
     { label: 'Neutral', value: 68.1, color: '#4a90e2' },
     { label: 'Negative', value: 20.9, color: '#f39c12' },
     { label: 'Positive', value: 11.0, color: '#ffcc99' }
   ];
 
+  const sentimentData = distribution && distribution.length ? distribution : fallback;
   // Calculate angles for donut chart
   const total = sentimentData.reduce((sum, item) => sum + item.value, 0);
   let currentAngle = 0;

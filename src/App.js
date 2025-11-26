@@ -15,6 +15,7 @@ import Displays from './components/Displays';
 import Playlists from './components/Playlists';
 import Streams from './components/Streams';
 import SentimentColors from './components/SentimentColors';
+import ActivityDashboard from './components/ActivityDashboard';
 
 function App() {
   const [currentView, setCurrentView] = useState('projects');
@@ -28,6 +29,8 @@ function App() {
           setSelectedDataset(dataset);
           setCurrentMode('builder');
         }} />;
+      case 'dashboard':
+        return <ActivityDashboard />;
       case 'datasets':
         return <Datasets onSelectDataset={(dataset) => {
           setSelectedDataset(dataset);

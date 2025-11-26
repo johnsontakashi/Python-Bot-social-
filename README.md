@@ -130,8 +130,14 @@ src/
 ### Data Explorer
 1. Go to **Datasets** and select a data collection
 2. View social media posts with sentiment analysis
-3. Filter by date range, platform, or keywords
+3. Filter by language, date granularity (Day/Week), platform, or keywords
 4. Create dashboards directly from data insights
+
+### Activity Dashboard
+- Auto-loads `public/data/sample_activities.json` on first open.
+- Use the `Upload JSON/NDJSON` button to load your own file.
+- Use the `Language` dropdown to filter to a specific language (e.g., `english`, `portuguese`) or choose `All`.
+- The dropdown options are built dynamically from `schema:activity.content:language` values present in your file.
 
 ## 🔧 Development
 
