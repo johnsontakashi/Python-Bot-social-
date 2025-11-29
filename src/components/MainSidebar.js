@@ -15,6 +15,16 @@ const MainSidebar = ({ currentView, onViewChange }) => {
       description: 'Overview of influencer activity'
     },
     {
+      id: 'superadmin',
+      label: 'Super Admin',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12 1l3 5 5 .75-3.6 3.4.85 4.85L12 17l-5.25 3 .85-4.85L4 6.75 9 6l3-5z"/>
+        </svg>
+      ),
+      description: 'Platform maintenance & exports'
+    },
+    {
       id: 'projects',
       label: 'Projects',
       icon: (

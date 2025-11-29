@@ -1,5 +1,8 @@
 import React from 'react';
-import { fetchActivities, aggregateSentiment, aggregateTimeSeries } from '../utils/activityParser';
+// Local parser utilities for client-side processing of a loaded file or sample
+import { fetchActivities as fetchLocalActivities, aggregateSentiment, aggregateTimeSeries } from '../utils/activityParser';
+// Backend API client
+import { fetchActivities, fetchAggregates, ingestActivities, exportActivities, deleteActivity } from '../api';
 
 // Simple aggregation helpers local to dashboard
 function aggregateTopActors(activities, limit = 10) {
@@ -64,19 +67,49 @@ export default function ActivityDashboard() {
   }
 
   React.useEffect(() => {
-    // Auto-load sample file on first mount
-    loadSample();
+    // Initial: try loading from API; if empty fall back to sample file
+    (async () => {
+      try {
+        const remote = await fetchActivities({ limit: 200 });
+        if (remote.length) {
+          setActivities(remote);
+          notify(`Loaded ${remote.length} activities from API`);
+        } else {
+          await loadSample();
+        }
+      } catch {
+        await loadSample();
+      }
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function loadSample() {
     setLoading(true); setError('');
     try {
-      const data = await fetchActivities('/data/sample_activities.json');
+      const data = await fetchLocalActivities('/data/sample_activities.json');
       setActivities(data);
-      notify(`Sample data loaded: ${data.length} records`);
+      notify(`Sample file loaded locally: ${data.length} records`);
     } catch (e) { setError(String(e)); }
     finally { setLoading(false); }
+  }
+
+  async function loadFromServer() {
+    setLoading(true); setError('');
+    try {
+      const data = await fetchActivities({ language: language !== 'all' ? language : undefined, limit: 500 });
+      setActivities(data);
+      notify(`Fetched ${data.length} records from API`);
+    } catch (e) { setError(String(e)); }
+    finally { setLoading(false); }
+  }
+
+  async function refreshAggregatesOnly() {
+    // Optionally could use backend pre-aggregation; currently local calculations already suffice.
+    try {
+      const agg = await fetchAggregates();
+      notify(`Aggregate refresh: ${agg.total} total`);
+    } catch (e) { /* silent */ }
   }
 
   async function onFileChange(e) {
@@ -87,8 +120,30 @@ export default function ActivityDashboard() {
       const text = await file.text();
       const { parseActivitiesFromText } = await import('../utils/activityParser');
       const parsed = parseActivitiesFromText(text);
-      setActivities(parsed);
-      notify(`Upload successful: ${parsed.length} records loaded`);
+      // Map normalized items back to ingestion schema keys expected by backend
+      const ingestPayload = parsed.map(a => ({
+        'schema:actor:name': a.actorName,
+        'schema:actor:image': a.actorImage,
+        'schema:activity.timestamp:timestamp': a.timestamp,
+        'schema:metadata:datatype': a.datatype,
+        'schema:activity.content:value': a.content,
+        'schema:activity.content:language': a.languages,
+        'schema:activity.location:placename': a.place,
+        'schema:actor:followers_count': a.followers,
+        'schema:activity.content:sentiment': a.sentiment,
+        'streams': a.streams
+      }));
+      try {
+        const resp = await ingestActivities(ingestPayload);
+        notify(`Ingested ${resp.ingested}/${ingestPayload.length} to API`);
+        // Reload from server to reflect authoritative state
+        const reloaded = await fetchActivities({ limit: 500 });
+        setActivities(reloaded);
+      } catch (ingErr) {
+        // Fallback: keep local only
+        setActivities(parsed);
+        notify(`Local load (API ingest failed). Records: ${parsed.length}`, 'error');
+      }
     } catch (e) { setError(String(e)); }
     finally { setLoading(false); }
   }
@@ -131,7 +186,8 @@ export default function ActivityDashboard() {
       )}
       <h2 style={{ marginTop: 0 }}>Influencer Activity Dashboard</h2>
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
-        <button onClick={loadSample} style={{ padding: '8px 12px', background: '#4a90e2', border: 'none', color: '#fff', borderRadius: 6, cursor: 'pointer' }}>Reload Sample Data</button>
+        <button onClick={loadSample} style={{ padding: '8px 12px', background: '#4a90e2', border: 'none', color: '#fff', borderRadius: 6, cursor: 'pointer' }}>Load Local Sample</button>
+        <button onClick={loadFromServer} style={{ padding: '8px 12px', background: '#238636', border: 'none', color: '#fff', borderRadius: 6, cursor: 'pointer' }}>Load From API</button>
         <label style={{ padding: '8px 12px', background: '#30363d', border: '1px solid #30363d', color: '#f0f6fc', borderRadius: 6, cursor: 'pointer' }}>
           Upload JSON/NDJSON
           <input type="file" accept=".json,.ndjson,.txt" onChange={onFileChange} style={{ display: 'none' }} />
@@ -144,7 +200,6 @@ export default function ActivityDashboard() {
               <option key={l} value={l}>{l}</option>
             ))}
           </select>
-          <span>Granularity</span>
           <span>Granularity</span>
           <select value={granularity} onChange={(e) => setGranularity(e.target.value)} style={{ background: '#0d1117', color: '#f0f6fc', border: '1px solid #30363d', borderRadius: 6, padding: '6px 8px' }}>
             <option value="day">Day</option>
@@ -215,11 +270,18 @@ export default function ActivityDashboard() {
           <div style={{ display: 'flex', gap: 8 }}>
             <button
               disabled={selectedIds.size === 0}
-              onClick={() => {
+              onClick={async () => {
                 if (selectedIds.size === 0) return;
                 if (!window.confirm(`Delete ${selectedIds.size} selected record(s)?`)) return;
+                // Separate numeric (server) ids from local sample composite ids
+                const numericIds = Array.from(selectedIds).filter(id => typeof id === 'number');
+                const localIds = Array.from(selectedIds).filter(id => typeof id !== 'number');
+                let serverDeleted = 0;
+                for (const id of numericIds) {
+                  try { await deleteActivity(id); serverDeleted++; } catch {/* ignore */}
+                }
                 setActivities(prev => prev.filter(a => !selectedIds.has(a.id)));
-                notify(`Deleted ${selectedIds.size} record(s)`);
+                notify(`Deleted ${serverDeleted + localIds.length} record(s)`);
                 setSelectedIds(new Set());
               }}
               style={{ padding: '6px 10px', background: selectedIds.size ? '#e74c3c' : '#30363d', color: '#fff', border: 'none', borderRadius: 6, cursor: selectedIds.size ? 'pointer' : 'not-allowed' }}

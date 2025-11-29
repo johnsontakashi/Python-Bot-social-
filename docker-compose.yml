@@ -1,0 +1,42 @@
+version: '3.9'
+services:
+  postgres:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: social_monitor
+      POSTGRES_USER: social_user
+      POSTGRES_PASSWORD: social_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbit
+      RABBITMQ_DEFAULT_PASS: rabbit
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+  api:
+    build: ./server
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      - postgres
+      - rabbitmq
+    ports:
+      - "5000:5000"
+    command: ["/bin/bash","-c","flask db upgrade && flask run --host=0.0.0.0 --port=5000"]
+  worker:
+    build: ./server
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      - api
+      - rabbitmq
+    command: ["/bin/bash","-c","celery -A tasks.celery_app worker --loglevel=info"]
+volumes:
+  pgdata:

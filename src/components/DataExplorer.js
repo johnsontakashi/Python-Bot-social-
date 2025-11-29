@@ -2,7 +2,10 @@ import React from 'react';
 import TimeSeriesChart from './TimeSeriesChart';
 import SentimentTable from './SentimentTable';
 import ProportionChart from './ProportionChart';
-import { fetchActivities, aggregateSentiment, aggregateTimeSeries } from '../utils/activityParser';
+// Local file/sample utilities
+import { fetchActivities as fetchLocalActivities, aggregateSentiment, aggregateTimeSeries } from '../utils/activityParser';
+// Backend API client functions
+import { fetchActivities, ingestActivities, deleteActivity } from '../api';
 
 const box = {
   background: '#0d1117',
@@ -29,12 +32,22 @@ const DataExplorer = ({ dataset, onBack, onCreateDashboard }) => {
   const loadSample = async () => {
     setLoading(true); setError('');
     try {
-      const data = await fetchActivities('/data/sample_activities.json');
+      const data = await fetchLocalActivities('/data/sample_activities.json');
       setActivities(data);
-      notify(`Sample data loaded: ${data.length} records`);
+      notify(`Sample file loaded: ${data.length} records`);
     } catch (e) {
       setError(String(e));
     } finally { setLoading(false); }
+  };
+
+  const loadFromServer = async () => {
+    setLoading(true); setError('');
+    try {
+      const data = await fetchActivities({ limit: 300 });
+      setActivities(data);
+      notify(`Loaded ${data.length} from API`);
+    } catch (e) { setError(String(e)); }
+    finally { setLoading(false); }
   };
 
   const onFileChange = async (e) => {
@@ -45,8 +58,27 @@ const DataExplorer = ({ dataset, onBack, onCreateDashboard }) => {
       const text = await file.text();
       const { parseActivitiesFromText } = await import('../utils/activityParser');
       const parsed = parseActivitiesFromText(text);
-      setActivities(parsed);
-      notify(`Upload successful: ${parsed.length} records loaded`);
+      const ingestPayload = parsed.map(a => ({
+        'schema:actor:name': a.actorName,
+        'schema:actor:image': a.actorImage,
+        'schema:activity.timestamp:timestamp': a.timestamp,
+        'schema:metadata:datatype': a.datatype,
+        'schema:activity.content:value': a.content,
+        'schema:activity.content:language': a.languages,
+        'schema:activity.location:placename': a.place,
+        'schema:actor:followers_count': a.followers,
+        'schema:activity.content:sentiment': a.sentiment,
+        'streams': a.streams
+      }));
+      try {
+        const resp = await ingestActivities(ingestPayload);
+        notify(`Ingested ${resp.ingested}/${ingestPayload.length} to API`);
+        const reloaded = await fetchActivities({ limit: 300 });
+        setActivities(reloaded);
+      } catch (ingErr) {
+        setActivities(parsed);
+        notify(`Local load only (API ingest failed). Records: ${parsed.length}`, 'error');
+      }
     } catch (e) {
       setError(String(e));
     } finally { setLoading(false); }
@@ -97,7 +129,8 @@ const DataExplorer = ({ dataset, onBack, onCreateDashboard }) => {
       </div>
 
       <div style={{ ...box, marginBottom: 16, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-        <button onClick={loadSample} style={{ padding: '8px 12px', background: '#4a90e2', border: 'none', color: '#fff', borderRadius: 6, cursor: 'pointer' }}>Load Sample Data</button>
+        <button onClick={loadSample} style={{ padding: '8px 12px', background: '#4a90e2', border: 'none', color: '#fff', borderRadius: 6, cursor: 'pointer' }}>Load Local Sample</button>
+        <button onClick={loadFromServer} style={{ padding: '8px 12px', background: '#238636', border: 'none', color: '#fff', borderRadius: 6, cursor: 'pointer' }}>Load From API</button>
         <label style={{ padding: '8px 12px', background: '#30363d', border: '1px solid #30363d', color: '#f0f6fc', borderRadius: 6, cursor: 'pointer' }}>
           Upload JSON/NDJSON
           <input type="file" accept=".json,.ndjson,.txt" onChange={onFileChange} style={{ display: 'none' }} />
@@ -163,12 +196,18 @@ const DataExplorer = ({ dataset, onBack, onCreateDashboard }) => {
             </button>
             <button
               disabled={selectedIds.size === 0}
-              onClick={() => {
+              onClick={async () => {
                 if (selectedIds.size === 0) return;
                 if (!window.confirm(`Delete ${selectedIds.size} selected record(s)?`)) return;
+                const numericIds = Array.from(selectedIds).filter(id => typeof id === 'number');
+                const localIds = Array.from(selectedIds).filter(id => typeof id !== 'number');
+                let serverDeleted = 0;
+                for (const id of numericIds) {
+                  try { await deleteActivity(id); serverDeleted++; } catch {/*ignore*/}
+                }
                 setActivities(prev => prev.filter(a => !selectedIds.has(a.id)));
                 setSelectedIds(new Set());
-                notify('Selected records deleted');
+                notify(`Deleted ${serverDeleted + localIds.length} record(s)`);
               }}
               style={{ padding: '8px 12px', background: selectedIds.size ? '#e74c3c' : '#30363d', border: 'none', color: '#fff', borderRadius: 6, cursor: selectedIds.size ? 'pointer' : 'not-allowed' }}
             >Delete Selected</button>

@@ -16,6 +16,7 @@ import Playlists from './components/Playlists';
 import Streams from './components/Streams';
 import SentimentColors from './components/SentimentColors';
 import ActivityDashboard from './components/ActivityDashboard';
+import SuperAdminDashboard from './components/SuperAdminDashboard';
 
 function App() {
   const [currentView, setCurrentView] = useState('projects');
@@ -54,6 +55,8 @@ function App() {
         return <SentimentColors />;
       case 'settings':
         return <Settings />;
+      case 'superadmin':
+        return <SuperAdminDashboard />;
       default:
         return <Projects />;
     }
