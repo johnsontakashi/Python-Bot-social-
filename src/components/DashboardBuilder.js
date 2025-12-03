@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Responsive, WidthProvider } from 'react-grid-layout';
 import './DashboardBuilder.css';
 import 'react-grid-layout/css/styles.css';
