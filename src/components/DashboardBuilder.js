@@ -5,12 +5,21 @@ import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import WidgetLibrary from './WidgetLibrary';
 import Widget from './Widget';
+import { createDashboard, updateDashboard, fetchDashboard } from '../api';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
 const DashboardBuilder = ({ dataset, onBack }) => {
   const [isEditMode, setIsEditMode] = useState(true);
   const [selectedResolution, setSelectedResolution] = useState('1080p');
+  
+  // Ensure selectedResolution is valid
+  useEffect(() => {
+    if (!resolutions[selectedResolution]) {
+      console.warn(`Invalid resolution "${selectedResolution}", resetting to 1080p`);
+      setSelectedResolution('1080p');
+    }
+  }, [selectedResolution]);
   const [dashboardSettings, setDashboardSettings] = useState({
     title: 'New Dashboard',
     background: { type: 'solid', value: '#0d1117' }
@@ -19,6 +28,8 @@ const DashboardBuilder = ({ dataset, onBack }) => {
   const [showWidgetLibrary, setShowWidgetLibrary] = useState(false);
   const [selectedWidget, setSelectedWidget] = useState(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [dashboardId, setDashboardId] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Load dashboard on mount if exists
   React.useEffect(() => {
@@ -92,29 +103,46 @@ const DashboardBuilder = ({ dataset, onBack }) => {
     );
   };
 
-  const saveDashboard = () => {
-    const dashboardData = {
-      id: `dashboard_${dataset?.id}`,
-      settings: dashboardSettings,
-      widgets: widgets,
-      resolution: selectedResolution,
-      timestamp: new Date().toISOString()
-    };
-    
-    localStorage.setItem(`dashboard_${dataset?.id}`, JSON.stringify(dashboardData));
-    
-    // Also save to a list of all dashboards
-    const allDashboards = JSON.parse(localStorage.getItem('all_dashboards') || '[]');
-    const existingIndex = allDashboards.findIndex(d => d.id === dashboardData.id);
-    
-    if (existingIndex >= 0) {
-      allDashboards[existingIndex] = dashboardData;
-    } else {
-      allDashboards.push(dashboardData);
+  const saveDashboard = async () => {
+    setIsSaving(true);
+    try {
+      const dashboardData = {
+        name: dashboardSettings.title,
+        description: `Dashboard for ${dataset?.name || 'data analysis'}`,
+        resolution: selectedResolution,
+        layout: JSON.stringify({
+          settings: dashboardSettings,
+          widgets: widgets
+        })
+      };
+      
+      let result;
+      if (dashboardId) {
+        // Update existing dashboard
+        result = await updateDashboard(dashboardId, dashboardData);
+      } else {
+        // Create new dashboard
+        result = await createDashboard(dashboardData);
+        setDashboardId(result.id);
+      }
+      
+      // Also save to localStorage as backup
+      const localData = {
+        id: result.id,
+        settings: dashboardSettings,
+        widgets: widgets,
+        resolution: selectedResolution,
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem(`dashboard_${result.id}`, JSON.stringify(localData));
+      
+      alert('Dashboard saved successfully!');
+    } catch (error) {
+      console.error('Failed to save dashboard:', error);
+      alert('Failed to save dashboard. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
-    
-    localStorage.setItem('all_dashboards', JSON.stringify(allDashboards));
-    alert('Dashboard saved successfully!');
   };
 
   const toggleFullscreen = () => {
@@ -129,13 +157,29 @@ const DashboardBuilder = ({ dataset, onBack }) => {
   const getCanvasStyle = () => {
     const resolution = resolutions[selectedResolution];
     
+    // Safety check - if resolution is undefined, use default 1080p
+    if (!resolution) {
+      console.warn(`Resolution "${selectedResolution}" not found, using default 1080p`);
+      const defaultResolution = resolutions['1080p'];
+      return {
+        width: defaultResolution.width,
+        height: defaultResolution.height,
+        transform: 'scale(0.5)',
+        transformOrigin: 'top center',
+        background: dashboardSettings?.background?.type === 'solid' 
+          ? dashboardSettings.background.value 
+          : dashboardSettings?.background?.value ? `url(${dashboardSettings.background.value})` : '#0d1117',
+        margin: '0 auto'
+      };
+    }
+    
     // Improved scaling for external displays
     let containerWidth, containerHeight;
     
     if (isFullscreen) {
       // Use full screen dimensions for external display
-      containerWidth = window.screen.width;
-      containerHeight = window.screen.height;
+      containerWidth = window.screen?.width || window.innerWidth;
+      containerHeight = window.screen?.height || window.innerHeight;
     } else {
       // Leave space for UI elements in edit mode
       containerWidth = window.innerWidth - (isEditMode ? 400 : 100);
@@ -151,9 +195,9 @@ const DashboardBuilder = ({ dataset, onBack }) => {
       height: resolution.height,
       transform: `scale(${scale})`,
       transformOrigin: 'top center',
-      background: dashboardSettings.background.type === 'solid' 
+      background: dashboardSettings?.background?.type === 'solid' 
         ? dashboardSettings.background.value 
-        : `url(${dashboardSettings.background.value})`,
+        : dashboardSettings?.background?.value ? `url(${dashboardSettings.background.value})` : '#0d1117',
       margin: '0 auto'
     };
   };
@@ -225,8 +269,12 @@ const DashboardBuilder = ({ dataset, onBack }) => {
             {isFullscreen ? 'Exit' : 'Fullscreen'}
           </button>
 
-          <button className="save-dashboard-btn" onClick={saveDashboard}>
-            Save Dashboard
+          <button 
+            className="save-dashboard-btn" 
+            onClick={saveDashboard}
+            disabled={isSaving}
+          >
+            {isSaving ? 'Saving...' : (dashboardId ? 'Update Dashboard' : 'Save Dashboard')}
           </button>
         </div>
       </div>

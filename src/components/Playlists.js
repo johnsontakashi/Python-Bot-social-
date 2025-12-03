@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import './Playlists.css';
+import {
+  fetchPlaylists,
+  createPlaylist,
+  updatePlaylist,
+  deletePlaylist,
+  fetchPlaylistItems,
+  updatePlaylistItems,
+  fetchDashboards
+} from '../api';
 
 const Playlists = () => {
   const [playlists, setPlaylists] = useState([]);
@@ -17,84 +26,64 @@ const Playlists = () => {
     loop: true,
     status: 'draft'
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Available dashboards (mock data)
-  const availableDashboards = [
-    { id: 1, name: 'Federal Election Overview', thumbnail: null, widgets: 12 },
-    { id: 2, name: 'Executive Summary', thumbnail: null, widgets: 8 },
-    { id: 3, name: 'Social Media Trends', thumbnail: null, widgets: 15 },
-    { id: 4, name: 'Sentiment Analysis', thumbnail: null, widgets: 10 },
-    { id: 5, name: 'Geographic Analysis', thumbnail: null, widgets: 9 },
-    { id: 6, name: 'Real-time Monitor', thumbnail: null, widgets: 14 },
-    { id: 7, name: 'Campaign Performance', thumbnail: null, widgets: 11 },
-    { id: 8, name: 'Public Opinion', thumbnail: null, widgets: 7 }
-  ];
+  const [availableDashboards, setAvailableDashboards] = useState([]);
 
-  // Load playlists from localStorage on mount
+  // Load playlists and dashboards from backend
   useEffect(() => {
-    const savedPlaylists = localStorage.getItem('playlists');
-    if (savedPlaylists) {
-      setPlaylists(JSON.parse(savedPlaylists));
-    } else {
-      // Initialize with sample data
-      const samplePlaylists = [
-        {
-          id: 1,
-          name: 'Main Control Room',
-          description: 'Primary dashboard rotation for control room displays',
-          dashboards: [
-            { ...availableDashboards[0], duration: 45, order: 0 },
-            { ...availableDashboards[2], duration: 30, order: 1 },
-            { ...availableDashboards[3], duration: 60, order: 2 },
-            { ...availableDashboards[5], duration: 30, order: 3 }
-          ],
-          defaultDuration: 30,
-          loop: true,
-          status: 'active',
-          totalDuration: 165,
-          createdAt: '2024-11-20T10:00:00Z',
-          lastPlayed: '2024-11-25T14:30:00Z'
-        },
-        {
-          id: 2,
-          name: 'Executive Briefing',
-          description: 'High-level overview for executive presentations',
-          dashboards: [
-            { ...availableDashboards[1], duration: 120, order: 0 },
-            { ...availableDashboards[6], duration: 90, order: 1 },
-            { ...availableDashboards[7], duration: 60, order: 2 }
-          ],
-          defaultDuration: 60,
-          loop: false,
-          status: 'draft',
-          totalDuration: 270,
-          createdAt: '2024-11-22T14:15:00Z',
-          lastPlayed: null
-        },
-        {
-          id: 3,
-          name: 'Public Display',
-          description: 'Simplified view for public-facing screens',
-          dashboards: [
-            { ...availableDashboards[4], duration: 45, order: 0 },
-            { ...availableDashboards[7], duration: 45, order: 1 }
-          ],
-          defaultDuration: 45,
-          loop: true,
-          status: 'paused',
-          totalDuration: 90,
-          createdAt: '2024-11-18T09:30:00Z',
-          lastPlayed: '2024-11-24T16:45:00Z'
-        }
-      ];
-      setPlaylists(samplePlaylists);
-      localStorage.setItem('playlists', JSON.stringify(samplePlaylists));
-    }
+    loadData();
   }, []);
 
-  const savePlaylists = (updatedPlaylists) => {
-    setPlaylists(updatedPlaylists);
-    localStorage.setItem('playlists', JSON.stringify(updatedPlaylists));
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [playlistsData, dashboardsData] = await Promise.all([
+        fetchPlaylists(),
+        fetchDashboards()
+      ]);
+      
+      setPlaylists(playlistsData);
+      setAvailableDashboards(dashboardsData);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to load data:', err);
+      setError('Failed to load playlists. Please try again.');
+      // Fallback to localStorage if available
+      const savedPlaylists = localStorage.getItem('playlists');
+      if (savedPlaylists) {
+        setPlaylists(JSON.parse(savedPlaylists));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const savePlaylistToBackend = async (playlistData, isUpdate = false, playlistId = null) => {
+    try {
+      let result;
+      if (isUpdate && playlistId) {
+        result = await updatePlaylist(playlistId, playlistData);
+      } else {
+        result = await createPlaylist(playlistData);
+      }
+      await loadData(); // Refresh the list
+      return result;
+    } catch (error) {
+      console.error('Failed to save playlist:', error);
+      throw new Error('Failed to save playlist. Please try again.');
+    }
+  };
+
+  const deletePlaylistFromBackend = async (playlistId) => {
+    try {
+      await deletePlaylist(playlistId);
+      await loadData(); // Refresh the list
+    } catch (error) {
+      console.error('Failed to delete playlist:', error);
+      throw new Error('Failed to delete playlist. Please try again.');
+    }
   };
 
   const calculateTotalDuration = (dashboards) => {
@@ -137,24 +126,35 @@ const Playlists = () => {
     }
   };
 
-  const handleCreatePlaylist = () => {
+  const handleCreatePlaylist = async () => {
     if (!newPlaylist.name) {
       alert('Please enter a playlist name');
       return;
     }
 
-    const playlist = {
-      id: Math.max(0, ...playlists.map(p => p.id)) + 1,
-      ...newPlaylist,
-      totalDuration: calculateTotalDuration(newPlaylist.dashboards),
-      createdAt: new Date().toISOString(),
-      lastPlayed: null
-    };
-
-    const updatedPlaylists = [playlist, ...playlists];
-    savePlaylists(updatedPlaylists);
-    setShowCreateModal(false);
-    resetNewPlaylist();
+    try {
+      const playlistData = {
+        name: newPlaylist.name,
+        description: newPlaylist.description || ''
+      };
+      
+      const result = await savePlaylistToBackend(playlistData);
+      
+      // If playlist has dashboards, save the items
+      if (newPlaylist.dashboards.length > 0) {
+        const items = newPlaylist.dashboards.map((dashboard, index) => ({
+          dashboardId: dashboard.id,
+          order: index,
+          durationSeconds: dashboard.duration || newPlaylist.defaultDuration
+        }));
+        await updatePlaylistItems(result.id, items);
+      }
+      
+      setShowCreateModal(false);
+      resetNewPlaylist();
+    } catch (error) {
+      alert(error.message);
+    }
   };
 
   const handleEditPlaylist = (playlist) => {
@@ -163,21 +163,34 @@ const Playlists = () => {
     setShowCreateModal(true);
   };
 
-  const handleUpdatePlaylist = () => {
+  const handleUpdatePlaylist = async () => {
     if (!newPlaylist.name) {
       alert('Please enter a playlist name');
       return;
     }
 
-    const updatedPlaylists = playlists.map(p => 
-      p.id === editingPlaylist.id 
-        ? { ...p, ...newPlaylist, totalDuration: calculateTotalDuration(newPlaylist.dashboards) }
-        : p
-    );
-    savePlaylists(updatedPlaylists);
-    setShowCreateModal(false);
-    setEditingPlaylist(null);
-    resetNewPlaylist();
+    try {
+      const playlistData = {
+        name: newPlaylist.name,
+        description: newPlaylist.description || ''
+      };
+      
+      await savePlaylistToBackend(playlistData, true, editingPlaylist.id);
+      
+      // Update playlist items
+      const items = newPlaylist.dashboards.map((dashboard, index) => ({
+        dashboardId: dashboard.id,
+        order: index,
+        durationSeconds: dashboard.duration || newPlaylist.defaultDuration
+      }));
+      await updatePlaylistItems(editingPlaylist.id, items);
+      
+      setShowCreateModal(false);
+      setEditingPlaylist(null);
+      resetNewPlaylist();
+    } catch (error) {
+      alert(error.message);
+    }
   };
 
   const resetNewPlaylist = () => {
@@ -231,17 +244,20 @@ const Playlists = () => {
     }));
   };
 
-  const togglePlaylistStatus = (playlistId) => {
-    const updatedPlaylists = playlists.map(playlist => 
-      playlist.id === playlistId 
-        ? { 
-            ...playlist, 
-            status: playlist.status === 'active' ? 'paused' : 'active',
-            lastPlayed: playlist.status === 'paused' ? new Date().toISOString() : playlist.lastPlayed
-          }
-        : playlist
-    );
-    savePlaylists(updatedPlaylists);
+  const togglePlaylistStatus = async (playlistId) => {
+    try {
+      const playlist = playlists.find(p => p.id === playlistId);
+      if (!playlist) return;
+      
+      const updatedData = {
+        name: playlist.name,
+        description: playlist.description || ''
+      };
+      
+      await savePlaylistToBackend(updatedData, true, playlistId);
+    } catch (error) {
+      alert('Failed to update playlist status: ' + error.message);
+    }
   };
 
   const startPreview = (playlist) => {
@@ -273,12 +289,25 @@ const Playlists = () => {
   const activeCount = playlists.filter(p => p.status === 'active').length;
   const draftCount = playlists.filter(p => p.status === 'draft').length;
 
+  if (loading) {
+    return (
+      <div className="playlists-container">
+        <div className="loading-message">
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <div>Loading playlists...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="playlists-container">
       <div className="playlists-header">
         <div className="header-title">
           <h2>Dashboard Playlists</h2>
           <p>Create and manage dashboard rotation sequences</p>
+          {error && <div style={{ color: '#e74c3c', fontSize: '14px', marginTop: '8px' }}>{error}</div>}
         </div>
         <div className="header-actions">
           <button className="create-playlist-btn" onClick={() => setShowCreateModal(true)}>
@@ -288,6 +317,15 @@ const Playlists = () => {
             </svg>
             Create Playlist
           </button>
+          {error && (
+            <button className="refresh-btn" onClick={loadData} style={{ marginLeft: '8px' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="23,4 23,10 17,10"></polyline>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+              </svg>
+              Retry
+            </button>
+          )}
         </div>
       </div>
 

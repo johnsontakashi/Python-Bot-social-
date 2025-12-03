@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
-from models import Base, Activity
+from models import Base, Activity, Dashboard, Display, Playlist, PlaylistItem, DisplayAssignment
 from schemas import ActivityIn
 from config import settings
 from aggregation import aggregate_sentiment, aggregate_time_series, aggregate_languages, aggregate_streams
@@ -123,6 +123,235 @@ def bulk_delete():
     q.delete(synchronize_session=False)
     session.commit()
     return jsonify({'deleted': deleted})
+
+
+# Dashboards CRUD
+@app.route('/api/dashboards', methods=['GET'])
+def list_dashboards():
+    session = SessionLocal()
+    rows = session.query(Dashboard).order_by(Dashboard.id.desc()).all()
+    return jsonify([r.to_dict() for r in rows])
+
+
+@app.route('/api/dashboards', methods=['POST'])
+def create_dashboard():
+    data = request.get_json(silent=True) or {}
+    session = SessionLocal()
+    obj = Dashboard(
+        name=data.get('name') or 'Untitled',
+        description=data.get('description'),
+        resolution=data.get('resolution'),
+        layout_json=data.get('layout') if isinstance(data.get('layout'), str) else json.dumps(data.get('layout')) if data.get('layout') else None,
+    )
+    session.add(obj)
+    session.commit()
+    return jsonify(obj.to_dict()), 201
+
+
+@app.route('/api/dashboards/<int:dashboard_id>', methods=['GET'])
+def get_dashboard(dashboard_id: int):
+    session = SessionLocal()
+    obj = session.query(Dashboard).get(dashboard_id)
+    if not obj:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify(obj.to_dict())
+
+
+@app.route('/api/dashboards/<int:dashboard_id>', methods=['PUT'])
+def update_dashboard(dashboard_id: int):
+    data = request.get_json(silent=True) or {}
+    session = SessionLocal()
+    obj = session.query(Dashboard).get(dashboard_id)
+    if not obj:
+        return jsonify({'error': 'Not found'}), 404
+    obj.name = data.get('name', obj.name)
+    obj.description = data.get('description', obj.description)
+    obj.resolution = data.get('resolution', obj.resolution)
+    layout = data.get('layout')
+    if layout is not None:
+        obj.layout_json = layout if isinstance(layout, str) else json.dumps(layout)
+    session.commit()
+    return jsonify(obj.to_dict())
+
+
+@app.route('/api/dashboards/<int:dashboard_id>', methods=['DELETE'])
+def delete_dashboard(dashboard_id: int):
+    session = SessionLocal()
+    obj = session.query(Dashboard).get(dashboard_id)
+    if not obj:
+        return jsonify({'error': 'Not found'}), 404
+    session.delete(obj)
+    session.commit()
+    return ('', 204)
+
+
+# Displays CRUD and assignment
+@app.route('/api/displays', methods=['GET'])
+def list_displays():
+    session = SessionLocal()
+    rows = session.query(Display).order_by(Display.id.desc()).all()
+    return jsonify([r.to_dict() for r in rows])
+
+
+@app.route('/api/displays', methods=['POST'])
+def create_display():
+    data = request.get_json(silent=True) or {}
+    session = SessionLocal()
+    obj = Display(
+        name=data.get('name') or 'New Display',
+        location=data.get('location'),
+        resolution=data.get('resolution'),
+    )
+    session.add(obj)
+    session.commit()
+    return jsonify(obj.to_dict()), 201
+
+
+@app.route('/api/displays/<int:display_id>', methods=['PUT'])
+def update_display(display_id: int):
+    data = request.get_json(silent=True) or {}
+    session = SessionLocal()
+    obj = session.query(Display).get(display_id)
+    if not obj:
+        return jsonify({'error': 'Not found'}), 404
+    obj.name = data.get('name', obj.name)
+    obj.location = data.get('location', obj.location)
+    obj.resolution = data.get('resolution', obj.resolution)
+    session.commit()
+    return jsonify(obj.to_dict())
+
+
+@app.route('/api/displays/<int:display_id>', methods=['DELETE'])
+def delete_display(display_id: int):
+    session = SessionLocal()
+    obj = session.query(Display).get(display_id)
+    if not obj:
+        return jsonify({'error': 'Not found'}), 404
+    session.delete(obj)
+    session.commit()
+    return ('', 204)
+
+
+@app.route('/api/displays/<int:display_id>/assignment', methods=['GET'])
+def get_display_assignment(display_id: int):
+    session = SessionLocal()
+    asg = session.query(DisplayAssignment).filter(DisplayAssignment.display_id == display_id).first()
+    if not asg:
+        return jsonify(None)
+    return jsonify(asg.to_dict())
+
+
+@app.route('/api/displays/<int:display_id>/assignment', methods=['PUT'])
+def put_display_assignment(display_id: int):
+    data = request.get_json(silent=True) or {}
+    dashboard_id = data.get('dashboardId')
+    playlist_id = data.get('playlistId')
+    if not dashboard_id and not playlist_id:
+        return jsonify({'error': 'dashboardId or playlistId required'}), 400
+    if dashboard_id and playlist_id:
+        return jsonify({'error': 'Provide only one of dashboardId or playlistId'}), 400
+    session = SessionLocal()
+    asg = session.query(DisplayAssignment).filter(DisplayAssignment.display_id == display_id).first()
+    if not asg:
+        asg = DisplayAssignment(display_id=display_id)
+        session.add(asg)
+    asg.dashboard_id = dashboard_id if dashboard_id else None
+    asg.playlist_id = playlist_id if playlist_id else None
+    session.commit()
+    return jsonify(asg.to_dict())
+
+
+# Playlists CRUD and items
+@app.route('/api/playlists', methods=['GET'])
+def list_playlists():
+    session = SessionLocal()
+    rows = session.query(Playlist).order_by(Playlist.id.desc()).all()
+    return jsonify([r.to_dict() for r in rows])
+
+
+@app.route('/api/playlists', methods=['POST'])
+def create_playlist():
+    data = request.get_json(silent=True) or {}
+    session = SessionLocal()
+    obj = Playlist(
+        name=data.get('name') or 'New Playlist',
+        description=data.get('description'),
+    )
+    session.add(obj)
+    session.commit()
+    return jsonify(obj.to_dict()), 201
+
+
+@app.route('/api/playlists/<int:playlist_id>', methods=['PUT'])
+def update_playlist(playlist_id: int):
+    data = request.get_json(silent=True) or {}
+    session = SessionLocal()
+    obj = session.query(Playlist).get(playlist_id)
+    if not obj:
+        return jsonify({'error': 'Not found'}), 404
+    obj.name = data.get('name', obj.name)
+    obj.description = data.get('description', obj.description)
+    session.commit()
+    return jsonify(obj.to_dict())
+
+
+@app.route('/api/playlists/<int:playlist_id>', methods=['DELETE'])
+def delete_playlist(playlist_id: int):
+    session = SessionLocal()
+    obj = session.query(Playlist).get(playlist_id)
+    if not obj:
+        return jsonify({'error': 'Not found'}), 404
+    # delete items first
+    session.query(PlaylistItem).filter(PlaylistItem.playlist_id == playlist_id).delete(synchronize_session=False)
+    session.delete(obj)
+    session.commit()
+    return ('', 204)
+
+
+@app.route('/api/playlists/<int:playlist_id>/items', methods=['GET'])
+def get_playlist_items(playlist_id: int):
+    session = SessionLocal()
+    items = session.query(PlaylistItem).filter(PlaylistItem.playlist_id == playlist_id).order_by(PlaylistItem.order_index.asc()).all()
+    return jsonify([i.to_dict() for i in items])
+
+
+@app.route('/api/playlists/<int:playlist_id>/items', methods=['PUT'])
+def put_playlist_items(playlist_id: int):
+    data = request.get_json(silent=True) or []
+    if not isinstance(data, list):
+        return jsonify({'error': 'Expected an array of items'}), 400
+    session = SessionLocal()
+    session.query(PlaylistItem).filter(PlaylistItem.playlist_id == playlist_id).delete(synchronize_session=False)
+    for item in data:
+        dashboard_id = item.get('dashboardId')
+        order_index = int(item.get('order', 0))
+        duration = int(item.get('durationSeconds', 30))
+        session.add(PlaylistItem(
+            playlist_id=playlist_id,
+            dashboard_id=dashboard_id,
+            order_index=order_index,
+            duration_seconds=duration,
+        ))
+    session.commit()
+    items = session.query(PlaylistItem).filter(PlaylistItem.playlist_id == playlist_id).order_by(PlaylistItem.order_index.asc()).all()
+    return jsonify([i.to_dict() for i in items])
+
+
+# Lightweight player payload for a display
+@app.route('/api/displays/<int:display_id>/player', methods=['GET'])
+def get_display_player_payload(display_id: int):
+    session = SessionLocal()
+    asg = session.query(DisplayAssignment).filter(DisplayAssignment.display_id == display_id).first()
+    if not asg:
+        return jsonify({'mode': 'none'})
+    if asg.dashboard_id:
+        dash = session.query(Dashboard).get(asg.dashboard_id)
+        return jsonify({'mode': 'dashboard', 'dashboard': dash.to_dict() if dash else None})
+    if asg.playlist_id:
+        pl = session.query(Playlist).get(asg.playlist_id)
+        items = session.query(PlaylistItem).filter(PlaylistItem.playlist_id == asg.playlist_id).order_by(PlaylistItem.order_index.asc()).all()
+        return jsonify({'mode': 'playlist', 'playlist': pl.to_dict() if pl else None, 'items': [i.to_dict() for i in items]})
+    return jsonify({'mode': 'none'})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

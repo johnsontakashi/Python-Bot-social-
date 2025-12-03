@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import './Displays.css';
+import { 
+  fetchDisplays, 
+  createDisplay, 
+  updateDisplay, 
+  deleteDisplay, 
+  fetchDisplayAssignment, 
+  updateDisplayAssignment,
+  fetchDashboards,
+  fetchPlaylists
+} from '../api';
 
 const Displays = () => {
   const [displays, setDisplays] = useState([]);
@@ -19,83 +29,66 @@ const Displays = () => {
     orientation: 'landscape'
   });
 
-  // Load displays from localStorage on mount
+  const [availableDashboards, setAvailableDashboards] = useState([]);
+  const [availablePlaylists, setAvailablePlaylists] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Load displays and available assignments from backend
   useEffect(() => {
-    const savedDisplays = localStorage.getItem('displays');
-    if (savedDisplays) {
-      setDisplays(JSON.parse(savedDisplays));
-    } else {
-      // Initialize with sample data
-      const sampleDisplays = [
-        {
-          id: 1,
-          name: 'Main Video Wall',
-          description: 'Central command center display - 3x3 arrangement',
-          location: 'Control Room A',
-          resolution: '4K',
-          type: 'video-wall',
-          status: 'online',
-          assignedDashboard: 'Federal Election Overview',
-          refreshRate: 30,
-          orientation: 'landscape',
-          lastActivity: '2024-11-25T15:30:00Z',
-          uptime: '99.2%',
-          screenCount: 9
-        },
-        {
-          id: 2,
-          name: 'Executive Dashboard',
-          description: 'C-level executive monitoring display',
-          location: 'Executive Office',
-          resolution: '1080p',
-          type: 'single-display',
-          status: 'online',
-          assignedDashboard: 'Executive Summary',
-          refreshRate: 60,
-          orientation: 'landscape',
-          lastActivity: '2024-11-25T15:25:00Z',
-          uptime: '98.8%',
-          screenCount: 1
-        },
-        {
-          id: 3,
-          name: 'Analytics Station',
-          description: 'Data analyst workstation display',
-          location: 'Analysis Room',
-          resolution: '1080p',
-          type: 'dual-monitor',
-          status: 'maintenance',
-          assignedDashboard: null,
-          refreshRate: 30,
-          orientation: 'landscape',
-          lastActivity: '2024-11-25T12:00:00Z',
-          uptime: '95.1%',
-          screenCount: 2
-        },
-        {
-          id: 4,
-          name: 'Public Display',
-          description: 'Lobby information display for visitors',
-          location: 'Main Lobby',
-          resolution: '720p',
-          type: 'digital-signage',
-          status: 'offline',
-          assignedDashboard: 'Public Info',
-          refreshRate: 15,
-          orientation: 'portrait',
-          lastActivity: '2024-11-25T08:15:00Z',
-          uptime: '87.3%',
-          screenCount: 1
-        }
-      ];
-      setDisplays(sampleDisplays);
-      localStorage.setItem('displays', JSON.stringify(sampleDisplays));
-    }
+    loadData();
   }, []);
 
-  const saveDisplays = (updatedDisplays) => {
-    setDisplays(updatedDisplays);
-    localStorage.setItem('displays', JSON.stringify(updatedDisplays));
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [displaysData, dashboardsData, playlistsData] = await Promise.all([
+        fetchDisplays(),
+        fetchDashboards(),
+        fetchPlaylists()
+      ]);
+      
+      setDisplays(displaysData);
+      setAvailableDashboards(dashboardsData);
+      setAvailablePlaylists(playlistsData);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to load data:', err);
+      setError('Failed to load displays. Please try again.');
+      // Fallback to localStorage if available
+      const savedDisplays = localStorage.getItem('displays');
+      if (savedDisplays) {
+        setDisplays(JSON.parse(savedDisplays));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const saveDisplayToBackend = async (displayData, isUpdate = false, displayId = null) => {
+    try {
+      let result;
+      if (isUpdate && displayId) {
+        result = await updateDisplay(displayId, displayData);
+      } else {
+        result = await createDisplay(displayData);
+      }
+      await loadData(); // Refresh the list
+      return result;
+    } catch (error) {
+      console.error('Failed to save display:', error);
+      throw new Error('Failed to save display. Please try again.');
+    }
+  };
+
+  const deleteDisplayFromBackend = async (displayId) => {
+    try {
+      await deleteDisplay(displayId);
+      await loadData(); // Refresh the list
+    } catch (error) {
+      console.error('Failed to delete display:', error);
+      throw new Error('Failed to delete display. Please try again.');
+    }
   };
 
   const resolutions = [
@@ -181,34 +174,35 @@ const Displays = () => {
     return `${diffDays}d ago`;
   };
 
-  const handleCreateDisplay = () => {
+  const handleCreateDisplay = async () => {
     if (!newDisplay.name || !newDisplay.location) {
       alert('Please fill in all required fields');
       return;
     }
 
-    const display = {
-      id: Math.max(0, ...displays.map(d => d.id)) + 1,
-      ...newDisplay,
-      lastActivity: new Date().toISOString(),
-      uptime: '100%',
-      screenCount: newDisplay.type === 'video-wall' ? 9 : newDisplay.type === 'dual-monitor' ? 2 : 1
-    };
-
-    const updatedDisplays = [display, ...displays];
-    saveDisplays(updatedDisplays);
-    setShowCreateModal(false);
-    setNewDisplay({
-      name: '',
-      description: '',
-      location: '',
-      resolution: '1080p',
-      type: 'video-wall',
-      status: 'offline',
-      assignedDashboard: null,
-      refreshRate: 30,
-      orientation: 'landscape'
-    });
+    try {
+      const displayData = {
+        name: newDisplay.name,
+        location: newDisplay.location,
+        resolution: newDisplay.resolution
+      };
+      
+      await saveDisplayToBackend(displayData);
+      setShowCreateModal(false);
+      setNewDisplay({
+        name: '',
+        description: '',
+        location: '',
+        resolution: '1080p',
+        type: 'video-wall',
+        status: 'offline',
+        assignedDashboard: null,
+        refreshRate: 30,
+        orientation: 'landscape'
+      });
+    } catch (error) {
+      alert(error.message);
+    }
   };
 
   const handleEditDisplay = (display) => {
@@ -217,46 +211,69 @@ const Displays = () => {
     setShowCreateModal(true);
   };
 
-  const handleUpdateDisplay = () => {
+  const handleUpdateDisplay = async () => {
     if (!newDisplay.name || !newDisplay.location) {
       alert('Please fill in all required fields');
       return;
     }
 
-    const updatedDisplays = displays.map(d => 
-      d.id === editingDisplay.id ? { ...d, ...newDisplay } : d
-    );
-    saveDisplays(updatedDisplays);
-    setShowCreateModal(false);
-    setEditingDisplay(null);
-    setNewDisplay({
-      name: '',
-      description: '',
-      location: '',
-      resolution: '1080p',
-      type: 'video-wall',
-      status: 'offline',
-      assignedDashboard: null,
-      refreshRate: 30,
-      orientation: 'landscape'
-    });
+    try {
+      const displayData = {
+        name: newDisplay.name,
+        location: newDisplay.location,
+        resolution: newDisplay.resolution
+      };
+      
+      await saveDisplayToBackend(displayData, true, editingDisplay.id);
+      setShowCreateModal(false);
+      setEditingDisplay(null);
+      setNewDisplay({
+        name: '',
+        description: '',
+        location: '',
+        resolution: '1080p',
+        type: 'video-wall',
+        status: 'offline',
+        assignedDashboard: null,
+        refreshRate: 30,
+        orientation: 'landscape'
+      });
+    } catch (error) {
+      alert(error.message);
+    }
   };
 
-  const toggleDisplayStatus = (displayId) => {
-    const updatedDisplays = displays.map(display => 
-      display.id === displayId 
-        ? { 
-            ...display, 
-            status: display.status === 'online' ? 'offline' : 'online',
-            lastActivity: new Date().toISOString()
-          }
-        : display
-    );
-    saveDisplays(updatedDisplays);
+  const toggleDisplayStatus = async (displayId) => {
+    try {
+      const display = displays.find(d => d.id === displayId);
+      if (!display) return;
+      
+      const updatedData = {
+        name: display.name,
+        location: display.location,
+        resolution: display.resolution
+      };
+      
+      await saveDisplayToBackend(updatedData, true, displayId);
+    } catch (error) {
+      alert('Failed to update display status: ' + error.message);
+    }
   };
 
   const onlineCount = displays.filter(d => d.status === 'online').length;
   const maintenanceCount = displays.filter(d => d.status === 'maintenance').length;
+
+  if (loading) {
+    return (
+      <div className="displays-container">
+        <div className="loading-message">
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <div>Loading displays...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="displays-container">
@@ -264,6 +281,7 @@ const Displays = () => {
         <div className="header-title">
           <h2>Display Management</h2>
           <p>Manage external screens and video wall configurations</p>
+          {error && <div style={{ color: '#e74c3c', fontSize: '14px', marginTop: '8px' }}>{error}</div>}
         </div>
         <div className="header-actions">
           <button className="create-display-btn" onClick={() => setShowCreateModal(true)}>
@@ -273,6 +291,15 @@ const Displays = () => {
             </svg>
             Add Display
           </button>
+          {error && (
+            <button className="refresh-btn" onClick={loadData} style={{ marginLeft: '8px' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="23,4 23,10 17,10"></polyline>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+              </svg>
+              Retry
+            </button>
+          )}
         </div>
       </div>
 

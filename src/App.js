@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 import MainSidebar from './components/MainSidebar';
 import TopNavigation from './components/TopNavigation';
@@ -17,8 +18,10 @@ import Streams from './components/Streams';
 import SentimentColors from './components/SentimentColors';
 import ActivityDashboard from './components/ActivityDashboard';
 import SuperAdminDashboard from './components/SuperAdminDashboard';
+import DisplayPlayer from './components/DisplayPlayer';
 
-function App() {
+// Main application component (non-player routes)
+function MainApp() {
   const [currentView, setCurrentView] = useState('projects');
   const [selectedDataset, setSelectedDataset] = useState(null);
   const [currentMode, setCurrentMode] = useState('main'); // 'main', 'builder', 'explorer'
@@ -102,6 +105,21 @@ function App() {
     <div className="app">
       {renderCurrentView()}
     </div>
+  );
+}
+
+// Main App with routing
+function App() {
+  return (
+    <Router>
+      <Routes>
+        {/* Display Player route - fullscreen, no navigation */}
+        <Route path="/display/:id" element={<DisplayPlayer />} />
+        
+        {/* Main application routes */}
+        <Route path="/*" element={<MainApp />} />
+      </Routes>
+    </Router>
   );
 }
 
